@@ -3,9 +3,8 @@
 ##### Table of Contents  
 1. [Server](#server)
     * [Endpoint](#endpoint)
-    * [Implement Endpoint to GRPC Transport](#grpc_transport)
     * [Implement Endpoint to HTTP Transport](#http_transport)
-    * [Decode Options](#http_decode_options)
+    * [Implement Endpoint to GRPC Transport](#grpc_transport)
     * [Validator](#validator)
     * [Override Validator](#override_validator)
 
@@ -45,29 +44,6 @@ func (c *Create) Endpoint() kitEndpoint.Endpoint {
 }
 ```
 
-<a name="grpc_transport"/>
-
-### Implement Endpoint to GRPC Transport
-
-Use **NewGRPCServer** method from object created from **NewEndpoint()** function in server package. By default, GRPC decode data based on json tag on models.
-
-| Param                             | Description                                                             |
-|-----------------------------------|:------------------------------------------------------------------------|
-| decodeModel &lt;interface{}>         | empty decode model, must be an address to struct model tagged with json |
-| encodeModel &lt;interface{}>         | empty encode model, must be an address to response protobuf struct      |
-| ...options &lt;ServerOption>         | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/grpc#ServerOption) |
-
-#### Example
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go)
-
-```
-createEndpoint := endpoint.CreateEndpoint()
-createEndpoint.Use(middleware.LogAndInstrumentation(libkitUser, "grpc_function", "create"))
-
-createEndpoint.NewGRPCServer(&model.CreateUser{}, &pb.CreateUserResponse{}, options...)
-```
-
 <a name="http_transport"/>
 
 ### Implement Endpoint to HTTP Transport
@@ -90,35 +66,40 @@ createEndpoint.Use(middleware.LogAndInstrumentation(libkitUser, "URL___METHOD", 
 createEndpoint.NewHTTPServer(&model.CreateUser{}, options...)
 ```
 
-<a name="http_decode_options"/>
+### Decode HTTP data using URL parameter
 
-### Decode Options
+Use **httpurl** tag on models.
 
-Add option functions to run before decode. Function must implements GRPCDecodeOptions (for GRPC transport) or HTTPDecodeOptions (for HTTP transport).
-
-Available HTTP options:
-
-| Function                          | Description                                                             |
-|-----------------------------------|:------------------------------------------------------------------------|
-| GetUrlParam(urlParams []string)   | Decode data from URL parameters instead of request JSON body. URL param must be snake_case version from struct attribute name |
-
-#### Example GetUrlParam
-
-Get *foo* attibute on **CreateUser** model from URL parameter.
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/http/server.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/http/server.go)
+#### Example
 
 ```
-decodeParam := kitxserver.HTTPDecodeParam{
-    Model: &model.CreateUser{},
-    Options: []kitxserver.HTTPDecodeOptions{
-        kitxserver.GetUrlParam([]string{"foo"}),
-    },
+type User struct {
+    ID *string `httpurl:"id" validate:"required" json:"id"`
 }
-
-createEndpoint.NewHTTPServer(decodeParam, opts...)
 ```
 
+<a name="grpc_transport"/>
+
+### Implement Endpoint to GRPC Transport
+
+Use **NewGRPCServer** method from object created from **NewEndpoint()** function in server package. By default, GRPC decode data based on json tag on models.
+
+| Param                             | Description                                                             |
+|-----------------------------------|:------------------------------------------------------------------------|
+| decodeModel &lt;interface{}>         | empty decode model, must be an address to struct model tagged with json |
+| encodeModel &lt;interface{}>         | empty encode model, must be an address to response protobuf struct      |
+| ...options &lt;ServerOption>         | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/grpc#ServerOption) |
+
+#### Example
+
+[https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go)
+
+```
+createEndpoint := endpoint.CreateEndpoint()
+createEndpoint.Use(middleware.LogAndInstrumentation(libkitUser, "grpc_function", "create"))
+
+createEndpoint.NewGRPCServer(&model.CreateUser{}, &pb.CreateUserResponse{}, options...)
+```
 <a name="validator"/>
 
 ### Validator
