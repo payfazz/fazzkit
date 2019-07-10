@@ -16,6 +16,7 @@ type ValidationFunc func(req interface{}) error
 //Endpoint struct must use Interface. Model used for transport decode method
 type Endpoint struct {
 	Interface
+
 	Validators []ValidationFunc
 	Middleware []endpoint.Middleware
 }
