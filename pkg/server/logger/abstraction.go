@@ -10,5 +10,4 @@ type ILogger interface {
 		f func(ctx context.Context, request interface{}) (interface{}, error),
 	) func(ctx context.Context, request interface{}) (interface{}, error)
 	Log(method string, action string, f func(ctx context.Context, request interface{}) (interface{}, error)) func(ctx context.Context, request interface{}) (interface{}, error)
-	LogAndInstrumentation(method string, action string, f func(ctx context.Context, request interface{}) (interface{}, error)) func(ctx context.Context, request interface{}) (interface{}, error)
 }

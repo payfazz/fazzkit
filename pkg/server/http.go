@@ -1,23 +1,34 @@
 package server
 
 import (
-	"sync"
+	"context"
+	"encoding/json"
 
-	"github.com/go-kit/kit/log"
+	netHTTP "net/http"
+
 	"github.com/go-kit/kit/transport/http"
 	"github.com/payfazz/fazzkit/pkg/server/logger"
 )
 
-var httponce sync.Once
-var httpLogger *log.Logger
-
 //NewHTTPServer create go kit HTTP server
 func (e *Endpoint) NewHTTPServer(decodeModel interface{}, options ...http.ServerOption) *http.Server {
-	httponce.Do(func() {
-		logObj := logger.GetLogger()
-		_httpLogger := log.With(*logObj, "component", "http")
-		httpLogger = &_httpLogger
-	})
-
+	options = append(options,
+		http.ServerErrorEncoder(encodeError),
+		http.ServerErrorLogger(*logger.GetLogger()),
+	)
 	return http.NewServer(e.EndpointWithMiddleware(), e.DecodeHTTP(decodeModel), e.EncodeHTTP(), options...)
+}
+
+func encodeError(_ context.Context, err error, w netHTTP.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	code := netHTTP.StatusInternalServerError
+	if sc, ok := err.(*ErrorWithStatusCode); ok {
+		code = sc.statusCode
+	}
+
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"error": err.Error(),
+	})
 }

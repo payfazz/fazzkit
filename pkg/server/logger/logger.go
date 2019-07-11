@@ -84,12 +84,3 @@ func (m Logger) Log(
 		return f(ctx, request)
 	}
 }
-
-//LogAndInstrumentation ...
-func (m Logger) LogAndInstrumentation(
-	method string,
-	action string,
-	f func(ctx context.Context, request interface{}) (interface{}, error),
-) func(ctx context.Context, request interface{}) (interface{}, error) {
-	return m.Instrumentation(method, action, m.Log(method, action, f))
-}
