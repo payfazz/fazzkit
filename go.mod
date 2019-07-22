@@ -10,5 +10,6 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
 	github.com/nats-io/stan.go v0.5.0
 	github.com/payfazz/go-validator v1.0.0
+	github.com/payfazz/kitx v0.0.0-20190703092659-bb3157be0ed8
 	github.com/prometheus/client_golang v1.0.0
 )

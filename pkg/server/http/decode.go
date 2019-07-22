@@ -1,8 +1,7 @@
-package server
+package http
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -10,77 +9,32 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
+
+	"github.com/payfazz/fazzkit/pkg/server/common"
+	"github.com/payfazz/fazzkit/pkg/server/validator"
 )
 
-//GRPCDecodeOptions executed before decode process
-type GRPCDecodeOptions func(ctx context.Context, model interface{}, request interface{}) error
+//DecodeOptions executed before decode process
+type DecodeOptions func(ctx context.Context, model interface{}, request *http.Request) error
 
-//GRPCDecodeParam decode model with GRPCDecodeOptions
-type GRPCDecodeParam struct {
+//DecodeParam decode model with DecodeOptions
+type DecodeParam struct {
 	Model   interface{}
-	Options []GRPCDecodeOptions
-}
-
-//DecodeGRPC generate a decode function to decode proto message to model
-func (e *Endpoint) DecodeGRPC(model interface{}) func(context.Context, interface{}) (request interface{}, err error) {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		if model == nil {
-			return nil, nil
-		}
-
-		var _model interface{}
-		var err error
-
-		param, ok := model.(GRPCDecodeParam)
-		if ok {
-			_model, _ = deepCopy(param.Model)
-			for _, option := range param.Options {
-				err = option(ctx, _model, request)
-				if err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			_model, _ = deepCopy(model)
-		}
-
-		_model, err = e.ParseGRPC(ctx, request, _model)
-
-		if err != nil {
-			return nil, err
-		}
-
-		err = e.Validate(_model)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return _model, nil
-	}
-}
-
-//HTTPDecodeOptions executed before decode process
-type HTTPDecodeOptions func(ctx context.Context, model interface{}, request *http.Request) error
-
-//HTTPDecodeParam decode model with HTTPDecodeOptions
-type HTTPDecodeParam struct {
-	Model   interface{}
-	Options []HTTPDecodeOptions
+	Options []DecodeOptions
 }
 
 //ErrorWithStatusCode error with http status code
 type ErrorWithStatusCode struct {
 	err        error
-	statusCode int
+	StatusCode int
 }
 
 func (e *ErrorWithStatusCode) Error() string {
 	return e.err.Error()
 }
 
-//DecodeHTTP generate a decode function to decode request body (json) to model
-func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Request) (request interface{}, err error) {
+//Decode generate a decode function to decode request body (json) to model
+func Decode(model interface{}) func(context.Context, *http.Request) (request interface{}, err error) {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
 		if model == nil {
 			return nil, nil
@@ -89,9 +43,9 @@ func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Req
 		var _model interface{}
 		var err error
 
-		param, ok := model.(HTTPDecodeParam)
+		param, ok := model.(DecodeParam)
 		if ok {
-			_model, _ = deepCopy(param.Model)
+			_model, _ = common.DeepCopy(param.Model)
 			for _, option := range param.Options {
 				err = option(ctx, _model, r)
 				if err != nil {
@@ -99,7 +53,7 @@ func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Req
 				}
 			}
 		} else {
-			_model, _ = deepCopy(model)
+			_model, _ = common.DeepCopy(model)
 		}
 
 		err = getURLParamUsingTag(ctx, _model, r)
@@ -109,14 +63,14 @@ func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Req
 
 		contentType := r.Header["Content-Type"]
 
-		if stringInSlice("application/json", contentType) {
-			_model, err = e.ParseHTTPJson(ctx, r, _model)
+		if common.StringInSlice("application/json", contentType) {
+			_model, err = ParseJSON(ctx, r, _model)
 			if err != nil {
 				return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 			}
 		}
 
-		err = e.Validate(_model)
+		err = validator.DefaultValidator()(_model)
 		if err != nil {
 			return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
@@ -125,38 +79,15 @@ func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Req
 	}
 }
 
-func deepCopy(v interface{}) (interface{}, error) {
-	data, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	vptr := reflect.New(reflect.TypeOf(v))
-	err = json.Unmarshal(data, vptr.Interface())
-	if err != nil {
-		return nil, err
-	}
-	return vptr.Elem().Interface(), err
-}
-
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-//GetURLParam built-in HTTPDecodeOptions for decode using url params
-func GetURLParam(params []string) HTTPDecodeOptions {
+//GetURLParam built-in DecodeOptions for decode using url params
+func GetURLParam(params []string) DecodeOptions {
 	return func(ctx context.Context, model interface{}, r *http.Request) error {
 		var err error
 		typ := reflect.TypeOf(model).Elem()
 		for i := 0; i < typ.NumField(); i++ {
 			name := typ.Field(i).Name
 			name = strcase.ToSnake(name)
-			if stringInSlice(name, params) {
+			if common.StringInSlice(name, params) {
 				err = getURLParam(ctx, model, r, name, i)
 				if err != nil {
 					return err
