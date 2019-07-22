@@ -9,7 +9,7 @@ import (
 	netHTTP "net/http"
 
 	"github.com/go-kit/kit/transport/http"
-	httpserver "github.com/payfazz/fazzkit/pkg/server/http"
+	httpserver "github.com/payfazz/fazzkit/server/http"
 )
 
 //NewHTTPServer create go kit HTTP server

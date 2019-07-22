@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	stan "github.com/nats-io/stan.go"
-	"github.com/payfazz/fazzkit/pkg/event/retry"
+	"github.com/payfazz/fazzkit/event/retry"
 )
 
 // Subscriber wraps subscription to topic a URL and provides a method that implements endpoint.Endpoint.
