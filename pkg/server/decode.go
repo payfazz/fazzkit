@@ -13,7 +13,7 @@ import (
 )
 
 //GRPCDecodeOptions executed before decode process
-type GRPCDecodeOptions func(ctx context.Context, model interface{}, request interface{})
+type GRPCDecodeOptions func(ctx context.Context, model interface{}, request interface{}) error
 
 //GRPCDecodeParam decode model with GRPCDecodeOptions
 type GRPCDecodeParam struct {
@@ -35,7 +35,10 @@ func (e *Endpoint) DecodeGRPC(model interface{}) func(context.Context, interface
 		if ok {
 			_model, _ = deepCopy(param.Model)
 			for _, option := range param.Options {
-				option(ctx, _model, request)
+				err = option(ctx, _model, request)
+				if err != nil {
+					return nil, err
+				}
 			}
 		} else {
 			_model, _ = deepCopy(model)
@@ -58,12 +61,22 @@ func (e *Endpoint) DecodeGRPC(model interface{}) func(context.Context, interface
 }
 
 //HTTPDecodeOptions executed before decode process
-type HTTPDecodeOptions func(ctx context.Context, model interface{}, request *http.Request)
+type HTTPDecodeOptions func(ctx context.Context, model interface{}, request *http.Request) error
 
 //HTTPDecodeParam decode model with HTTPDecodeOptions
 type HTTPDecodeParam struct {
 	Model   interface{}
 	Options []HTTPDecodeOptions
+}
+
+//ErrorWithStatusCode error with http status code
+type ErrorWithStatusCode struct {
+	err        error
+	statusCode int
+}
+
+func (e *ErrorWithStatusCode) Error() string {
+	return e.err.Error()
 }
 
 //DecodeHTTP generate a decode function to decode request body (json) to model
@@ -80,26 +93,32 @@ func (e *Endpoint) DecodeHTTP(model interface{}) func(context.Context, *http.Req
 		if ok {
 			_model, _ = deepCopy(param.Model)
 			for _, option := range param.Options {
-				option(ctx, _model, r)
+				err = option(ctx, _model, r)
+				if err != nil {
+					return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
+				}
 			}
 		} else {
 			_model, _ = deepCopy(model)
 		}
 
-		getURLParamUsingTag(ctx, _model, r)
+		err = getURLParamUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
+		}
 
 		contentType := r.Header["Content-Type"]
 
 		if stringInSlice("application/json", contentType) {
 			_model, err = e.ParseHTTPJson(ctx, r, _model)
 			if err != nil {
-				return nil, err
+				return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 			}
 		}
 
 		err = e.Validate(_model)
 		if err != nil {
-			return nil, err
+			return nil, &ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		return _model, nil
@@ -131,50 +150,63 @@ func stringInSlice(a string, list []string) bool {
 
 //GetURLParam built-in HTTPDecodeOptions for decode using url params
 func GetURLParam(params []string) HTTPDecodeOptions {
-	return func(ctx context.Context, model interface{}, r *http.Request) {
-		getURLParam(ctx, model, r, params)
+	return func(ctx context.Context, model interface{}, r *http.Request) error {
+		var err error
+		typ := reflect.TypeOf(model).Elem()
+		for i := 0; i < typ.NumField(); i++ {
+			name := typ.Field(i).Name
+			name = strcase.ToSnake(name)
+			if stringInSlice(name, params) {
+				err = getURLParam(ctx, model, r, name, i)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	}
 }
 
-func getURLParamUsingTag(ctx context.Context, model interface{}, r *http.Request) {
-	params := []string{}
-
+func getURLParamUsingTag(ctx context.Context, model interface{}, r *http.Request) error {
+	var err error
 	typ := reflect.TypeOf(model).Elem()
 	for i := 0; i < typ.NumField(); i++ {
-		params = append(params, typ.Field(i).Tag.Get("httpurl"))
+		tag := typ.Field(i).Tag.Get("httpurl")
+		if tag != "" {
+			err = getURLParam(ctx, model, r, tag, i)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	getURLParam(ctx, model, r, params)
+	return nil
 }
 
-func getURLParam(ctx context.Context, model interface{}, r *http.Request, params []string) {
-	typ := reflect.TypeOf(model).Elem()
+func getURLParam(ctx context.Context, model interface{}, r *http.Request, param string, valIdx int) error {
+	value := chi.URLParam(r, param)
+	if value == "" {
+		return nil
+	}
+
 	val := reflect.ValueOf(model).Elem()
 
-	for i := 0; i < typ.NumField(); i++ {
-		name := typ.Field(i).Name
-		name = strcase.ToSnake(name)
-
-		value := chi.URLParam(r, name)
-
-		if value == "" {
-			continue
+	switch valtype := val.Field(valIdx).Type().String(); valtype {
+	case "string":
+		val.Field(valIdx).SetString(value)
+	case "int64":
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
 		}
-		if !stringInSlice(name, params) {
-			continue
+		val.Field(valIdx).SetInt(v)
+	case "uuid.UUID":
+		v, err := uuid.Parse(value)
+		if err != nil {
+			return err
 		}
-
-		valtype := val.Field(i).Type().String()
-
-		switch valtype {
-		case "string":
-			val.Field(i).SetString(value)
-		case "int64":
-			v, _ := strconv.ParseInt(value, 10, 64)
-			val.Field(i).SetInt(v)
-		case "uuid.UUID":
-			v, _ := uuid.Parse(value)
-			val.Field(i).Set(reflect.ValueOf(v))
-		}
+		val.Field(valIdx).Set(reflect.ValueOf(v))
 	}
+
+	return nil
 }
