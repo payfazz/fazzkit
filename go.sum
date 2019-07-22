@@ -116,6 +116,7 @@ github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQ
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/payfazz/go-validator v1.0.0 h1:FRj+2AkWp7RuWiNADRhohL4g7tNzVDFp4z54tSS6fdg=
 github.com/payfazz/go-validator v1.0.0/go.mod h1:5emyVY75O3TqdF4M0d1TqCBIYRutMSDWJjE4hnK5LH8=
+github.com/payfazz/kitx v0.0.0-20190703092659-bb3157be0ed8 h1:KegfsVnIfA/4813be4aXPZwjomD7ZIefWZzEriWsy7I=
 github.com/payfazz/kitx v0.0.0-20190703092659-bb3157be0ed8/go.mod h1:bkWtlvsysoCPJD0TfR5vQkw/4sWhpPTmc5jdTyg/OZ4=
 github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

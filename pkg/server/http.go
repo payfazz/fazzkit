@@ -1,26 +1,29 @@
 package server
 
 import (
+	"github.com/go-kit/kit/endpoint"
+
 	"context"
 	"encoding/json"
 
 	netHTTP "net/http"
 
 	"github.com/go-kit/kit/transport/http"
+	httpserver "github.com/payfazz/fazzkit/pkg/server/http"
 )
 
 //NewHTTPServer create go kit HTTP server
-func (e *Endpoint) NewHTTPServer(decodeModel interface{}, options ...http.ServerOption) *http.Server {
+func NewHTTPServer(e endpoint.Endpoint, decodeModel interface{}, options ...http.ServerOption) *http.Server {
 	options = append(options, http.ServerErrorEncoder(encodeError))
-	return http.NewServer(e.EndpointWithMiddleware(), e.DecodeHTTP(decodeModel), e.EncodeHTTP(), options...)
+	return http.NewServer(e, httpserver.Decode(decodeModel), httpserver.Encode(), options...)
 }
 
 func encodeError(_ context.Context, err error, w netHTTP.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	code := netHTTP.StatusInternalServerError
-	if sc, ok := err.(*ErrorWithStatusCode); ok {
-		code = sc.statusCode
+	if sc, ok := err.(*httpserver.ErrorWithStatusCode); ok {
+		code = sc.StatusCode
 	}
 
 	w.WriteHeader(code)
