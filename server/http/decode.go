@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
 
-	"github.com/payfazz/fazzkit/pkg/server/common"
-	"github.com/payfazz/fazzkit/pkg/server/validator"
+	"github.com/payfazz/fazzkit/server/common"
+	"github.com/payfazz/fazzkit/server/validator"
 )
 
 //DecodeOptions executed before decode process

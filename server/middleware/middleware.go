@@ -5,7 +5,7 @@ import (
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 
 	"github.com/go-kit/kit/log"
-	"github.com/payfazz/fazzkit/pkg/server/logger"
+	"github.com/payfazz/fazzkit/server/logger"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

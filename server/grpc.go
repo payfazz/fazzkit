@@ -4,8 +4,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 
 	"github.com/go-kit/kit/transport/grpc"
-	grpcserver "github.com/payfazz/fazzkit/pkg/server/grpc"
-	"github.com/payfazz/fazzkit/pkg/server/logger"
+	grpcserver "github.com/payfazz/fazzkit/server/grpc"
+	"github.com/payfazz/fazzkit/server/logger"
 )
 
 //NewGRPCServer create go kit GRPC server
