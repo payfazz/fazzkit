@@ -7,7 +7,7 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
-	"github.com/payfazz/kitx/pkg/formatter/stringfmt"
+	"github.com/iancoleman/strcase"
 )
 
 //ParseGRPC parse request proto message to model
@@ -23,7 +23,7 @@ func (e *Endpoint) ParseGRPC(ctx context.Context, request interface{}, model int
 
 	err = json.Unmarshal([]byte(stringProtoMessage), &mapString)
 	for key, value := range mapString {
-		keySnake := stringfmt.ToSnakeCase(key)
+		keySnake := strcase.ToSnake(key)
 		mapString[keySnake] = value
 	}
 
