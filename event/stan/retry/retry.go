@@ -18,12 +18,18 @@ func Retry(handler stan.MsgHandler, opt *Opt) stan.MsgHandler {
 
 			switch err.(type) {
 			case *stopRetry:
+				logger := *opt.Logger
+				logger.Log("stop retry", err.(*stopRetry).Error())
 				return
 			case *forcePanic:
+				logger := *opt.Logger
+				logger.Log("force panic", err.(*forcePanic).Error())
 				panic(err)
 			}
 
 			if opt.UpTo == opt.attempt {
+				logger := *opt.Logger
+				logger.Log("max_attempt_on", fmt.Sprintf("subject: %s sequence:%d", msg.Subject, msg.Sequence))
 				return
 			}
 
