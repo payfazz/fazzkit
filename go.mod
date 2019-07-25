@@ -13,6 +13,7 @@ require (
 	github.com/nats-io/nats-server/v2 v2.0.2 // indirect
 	github.com/nats-io/stan.go v0.5.0
 	github.com/payfazz/go-validator v1.0.0
+	github.com/payfazz/kitx v0.0.0-20190703092659-bb3157be0ed8
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.6.0 // indirect
 	github.com/prometheus/procfs v0.0.3 // indirect
