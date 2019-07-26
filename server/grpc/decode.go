@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/payfazz/fazzkit/server/common"
-	"github.com/payfazz/fazzkit/server/validator"
 )
 
 //DecodeOptions executed before decode process
@@ -40,12 +39,6 @@ func Decode(model interface{}) func(context.Context, interface{}) (request inter
 		}
 
 		_model, err = Parse(ctx, request, _model)
-
-		if err != nil {
-			return nil, err
-		}
-
-		err = validator.DefaultValidator()(_model)
 
 		if err != nil {
 			return nil, err
