@@ -32,7 +32,7 @@ func NewHTTPServer(e endpoint.Endpoint, info InfoHTTP, options ...http.ServerOpt
 
 	middlewares := endpoint.Chain(mlog, mval)
 	e = middlewares(e)
-
+  
 	return http.NewServer(e, httpserver.Decode(info.DecodeModel), httpserver.Encode(), options...)
 }
 
