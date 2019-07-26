@@ -17,9 +17,10 @@ import (
 func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.Handler {
 	e := endpoint.Create()
 
-	m1 := middleware.LogAndInstrumentation(logger, "test", "test", "POST")
+	mval := middleware.Validator()
+	mlog := middleware.LogAndInstrumentation(logger, "test", "test", "POST")
 
-	middlewares := kitendpoint.Chain(m1)
+	middlewares := kitendpoint.Chain(mlog, mval)
 	e = middlewares(e)
 
 	return server.NewHTTPServer(e, &model.CreateFoo{}, opts...)

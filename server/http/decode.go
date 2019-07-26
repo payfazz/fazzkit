@@ -12,7 +12,6 @@ import (
 	"github.com/iancoleman/strcase"
 
 	"github.com/payfazz/fazzkit/server/common"
-	"github.com/payfazz/fazzkit/server/validator"
 )
 
 //DecodeOptions executed before decode process
@@ -69,11 +68,6 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			if err != nil {
 				return nil, &ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 			}
-		}
-
-		err = validator.DefaultValidator()(_model)
-		if err != nil {
-			return nil, &ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 		}
 
 		return _model, nil
