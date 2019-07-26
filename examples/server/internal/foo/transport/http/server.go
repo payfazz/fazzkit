@@ -14,7 +14,7 @@ import (
 )
 
 //MakeHandler make http handler for foo example
-func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.HandlerFunc {
+func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.Handler {
 	e := endpoint.Create()
 
 	m1 := middleware.LogAndInstrumentation(logger, "test", "test", "POST")

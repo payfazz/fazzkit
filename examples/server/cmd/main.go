@@ -40,6 +40,6 @@ func makeHandler(logger kitlog.Logger) http.Handler {
 		kithttp.ServerErrorLogger(logger),
 	}
 
-	r.Post("/foo/{id}", foohttp.MakeHandler(logger, opts...))
+	r.Post("/foo/{id}", foohttp.MakeHandler(logger, opts...).ServeHTTP)
 	return r
 }
