@@ -13,9 +13,9 @@ import (
 )
 
 //NewHTTPServer create go kit HTTP server
-func NewHTTPServer(e endpoint.Endpoint, decodeModel interface{}, options ...http.ServerOption) *http.Server {
+func NewHTTPServer(e endpoint.Endpoint, decodeModel interface{}, options ...http.ServerOption) netHTTP.HandlerFunc {
 	options = append(options, http.ServerErrorEncoder(encodeError))
-	return http.NewServer(e, httpserver.Decode(decodeModel), httpserver.Encode(), options...)
+	return http.NewServer(e, httpserver.Decode(decodeModel), httpserver.Encode(), options...).ServeHTTP
 }
 
 func encodeError(_ context.Context, err error, w netHTTP.ResponseWriter) {
