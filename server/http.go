@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/transport/http"
 	httpserver "github.com/payfazz/fazzkit/server/http"
 	"github.com/payfazz/fazzkit/server/middleware"
+	"github.com/payfazz/fazzkit/server/servererror"
 )
 
 //InfoHTTP server info
@@ -32,7 +33,7 @@ func NewHTTPServer(e endpoint.Endpoint, info InfoHTTP, options ...http.ServerOpt
 
 	middlewares := endpoint.Chain(mlog, mval)
 	e = middlewares(e)
-  
+
 	return http.NewServer(e, httpserver.Decode(info.DecodeModel), httpserver.Encode(), options...)
 }
 
@@ -40,7 +41,7 @@ func encodeError(_ context.Context, err error, w netHTTP.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	code := netHTTP.StatusInternalServerError
-	if sc, ok := err.(*httpserver.ErrorWithStatusCode); ok {
+	if sc, ok := err.(*servererror.ErrorWithStatusCode); ok {
 		code = sc.StatusCode
 	}
 

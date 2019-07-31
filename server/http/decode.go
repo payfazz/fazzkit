@@ -12,6 +12,7 @@ import (
 	"github.com/iancoleman/strcase"
 
 	"github.com/payfazz/fazzkit/server/common"
+	"github.com/payfazz/fazzkit/server/servererror"
 )
 
 //DecodeOptions executed before decode process
@@ -21,16 +22,6 @@ type DecodeOptions func(ctx context.Context, model interface{}, request *http.Re
 type DecodeParam struct {
 	Model   interface{}
 	Options []DecodeOptions
-}
-
-//ErrorWithStatusCode error with http status code
-type ErrorWithStatusCode struct {
-	Err        string
-	StatusCode int
-}
-
-func (e *ErrorWithStatusCode) Error() string {
-	return e.Err
 }
 
 //Decode generate a decode function to decode request body (json) to model
@@ -49,7 +40,7 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			for _, option := range param.Options {
 				err = option(ctx, _model, r)
 				if err != nil {
-					return nil, &ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+					return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 				}
 			}
 		} else {
@@ -58,7 +49,7 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 
 		err = getURLParamUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 		}
 
 		contentType := r.Header["Content-Type"]
@@ -66,7 +57,7 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 		if common.StringInSlice("application/json", contentType) {
 			_model, err = ParseJSON(ctx, r, _model)
 			if err != nil {
-				return nil, &ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+				return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 			}
 		}
 
