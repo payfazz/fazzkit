@@ -17,6 +17,14 @@ func Encode() func(ctx context.Context, w http.ResponseWriter, response interfac
 			return e.error()
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+		// set status code to 204 when the response is nil
+		if response == nil {
+			w.WriteHeader(http.StatusNoContent)
+			json.NewEncoder(w).Encode("")
+			return nil
+		}
+
 		json.NewEncoder(w).Encode(response)
 		return nil
 	}
