@@ -16,7 +16,6 @@ func Encode() func(ctx context.Context, w http.ResponseWriter, response interfac
 		if e, ok := response.(err); ok && e.error() != nil {
 			return e.error()
 		}
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		// set status code to 204 when the response is nil
 		if response == nil {
@@ -25,6 +24,7 @@ func Encode() func(ctx context.Context, w http.ResponseWriter, response interfac
 			return nil
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		json.NewEncoder(w).Encode(response)
 		return nil
 	}
