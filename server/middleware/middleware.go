@@ -17,7 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var loggers = make(map[string]logger.Logger)
+var loggers = make(map[string]*logger.Logger)
 var lock sync.Mutex
 
 //LogAndInstrumentation wrap endpoint function with logger.Log and logger.Instrumentation
@@ -26,9 +26,13 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 	var logObj logger.Logger
 
 	key := fmt.Sprintf("%s_%s", namespace, subsystem)
+	fmt.Println(key)
+
 	if val, ok := loggers[key]; ok {
-		logObj = val
+		logObj = *val
+		fmt.Println("use cache")
 	} else {
+		fmt.Println("create cache")
 		lock.Lock()
 		logObj = logger.New(
 			kitprometheus.NewCounterFrom(prometheus.CounterOpts{
@@ -46,7 +50,7 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 			kitLogger,
 		)
 
-		loggers[key] = logObj
+		loggers[key] = &logObj
 		lock.Unlock()
 	}
 
