@@ -16,31 +16,62 @@
 
 ### Endpoint
 
-Create server endpoint using **NewEndpoint()** function in server package. NewEndpoint parameter must be a struct that implements [endpoint interface](https://github.com/payfazz/kitx/blob/master/pkg/server/server.go). Endpoint interface has abstract method **Endpoint()** that return [go-kit endpoint function](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint).
+Define a [go-kit endpoint function](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint).
 
-#### Example
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/endpoint/create.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/endpoint/create.go)
 ```
-type Create struct{}
+import (
+	"context"
+	"fmt"
+	"net/http"
 
-func CreateEndpoint() *server.Endpoint {
-    createObj := &Create{}
-    return server.NewEndpoint(createObj)
+	"github.com/go-kit/kit/endpoint"
+	"github.com/payfazz/fazzkit/server/servererror"
+)
+
+type FooModel struct {
+    bar int
+    baz string
 }
 
-func (c *Create) Endpoint() kitEndpoint.Endpoint {
-    return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-        reqData := request.(*model.CreateUser)
+func Foo() endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		input, ok := request.(*FooModel)
+		if !ok {
+			return nil, &servererror.ErrorWithStatusCode{"invalid model", http.StatusInternalServerError}
+		}
 
-        hashed := *reqData.Password + "_hashed"
-        return &model.User{
-            Username:  reqData.Username,
-            Password:  &hashed,
-            CreatedAt: time.Now(),
-            UpdatedAt: time.Now(),
-        }, nil
-    }
+		fmt.Println("processing object...", input)
+		return request, nil
+	}
+}
+```
+
+
+```
+import (
+	"net/http"
+
+	kitlog "github.com/go-kit/kit/log"
+	kithttp "github.com/go-kit/kit/transport/http"
+
+	"github.com/payfazz/fazzkit/examples/server/internal/foo/endpoint"
+	"github.com/payfazz/fazzkit/examples/server/internal/foo/model"
+	"github.com/payfazz/fazzkit/server"
+)
+
+//MakeHandler make http handler for foo example
+func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.Handler {
+	e := endpoint.Create()
+
+	serverInfo := server.InfoHTTP{
+		DecodeModel: &FooModel{},
+		Logger:      logger,
+		Namespace:   "test",
+		Subsystem:   "test",
+		Action:      "POST",
+	}
+
+	return server.NewHTTPServer(e, serverInfo, opts...)
 }
 ```
 

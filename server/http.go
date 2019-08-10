@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/go-kit/kit/endpoint"
-	"github.com/go-kit/kit/log"
 
 	"context"
 	"encoding/json"
@@ -15,26 +14,32 @@ import (
 	"github.com/payfazz/fazzkit/server/servererror"
 )
 
-//InfoHTTP server info
-type InfoHTTP struct {
+//HTTPOption server info
+type HTTPOption struct {
 	DecodeModel interface{}
-	Logger      log.Logger
-	Namespace   string
-	Subsystem   string
-	Action      string
+	Logger      *Logger
 }
 
 //NewHTTPServer create go kit HTTP server
-func NewHTTPServer(e endpoint.Endpoint, info InfoHTTP, options ...http.ServerOption) netHTTP.Handler {
+func NewHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) netHTTP.Handler {
 	options = append(options, http.ServerErrorEncoder(encodeError))
 
 	mval := middleware.Validator()
-	mlog := middleware.LogAndInstrumentation(info.Logger, info.Namespace, info.Subsystem, info.Action)
+	middlewares := endpoint.Chain(mval)
 
-	middlewares := endpoint.Chain(mlog, mval)
+	if httpOpt.Logger != nil {
+		mlog := middleware.LogAndInstrumentation(
+			httpOpt.Logger.Logger,
+			httpOpt.Logger.Namespace,
+			httpOpt.Logger.Subsystem,
+			httpOpt.Logger.Action,
+		)
+		middlewares = endpoint.Chain(mlog, middlewares)
+	}
+
 	e = middlewares(e)
 
-	return http.NewServer(e, httpserver.Decode(info.DecodeModel), httpserver.Encode(), options...)
+	return http.NewServer(e, httpserver.Decode(httpOpt.DecodeModel), httpserver.Encode(), options...)
 }
 
 func encodeError(_ context.Context, err error, w netHTTP.ResponseWriter) {

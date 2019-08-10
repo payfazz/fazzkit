@@ -15,12 +15,14 @@ import (
 func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.Handler {
 	e := endpoint.Create()
 
-	serverInfo := server.InfoHTTP{
+	serverInfo := server.HTTPOption{
 		DecodeModel: &model.CreateFoo{},
-		Logger:      logger,
-		Namespace:   "test",
-		Subsystem:   "test",
-		Action:      "POST",
+		Logger: &server.Logger{
+			Logger:    logger,
+			Namespace: "test",
+			Subsystem: "test",
+			Action:    "POST",
+		},
 	}
 
 	return server.NewHTTPServer(e, serverInfo, opts...)
