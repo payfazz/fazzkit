@@ -165,6 +165,8 @@ Use **NewGRPCServer** function from server package.
 | GRPCOption                        | fazzkit GRPCOption |
 | ...ServerOption                   | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/http#ServerOption) |
 
+[Example](https://github.com/payfazz/fazzkit/blob/master/examples/server/internal/helloworld/transport/grpc/server.go)
+
 <a name="validator"/>
 
 ### Validator
