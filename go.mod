@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-kit/kit v0.9.0
 	github.com/gogo/protobuf v1.2.1
+	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70 // indirect
 	github.com/google/uuid v1.1.1
@@ -21,5 +22,6 @@ require (
 	golang.org/x/mobile v0.0.0-20190806162312-597adff16ade // indirect
 	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
 	golang.org/x/tools v0.0.0-20190809145639-6d4652c779c4 // indirect
+	google.golang.org/grpc v1.22.1
 	honnef.co/go/tools v0.0.1-2019.2.2 // indirect
 )
