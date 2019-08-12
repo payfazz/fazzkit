@@ -16,31 +16,34 @@
 
 ### Endpoint
 
-Create server endpoint using **NewEndpoint()** function in server package. NewEndpoint parameter must be a struct that implements [endpoint interface](https://github.com/payfazz/kitx/blob/master/pkg/server/server.go). Endpoint interface has abstract method **Endpoint()** that return [go-kit endpoint function](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint).
+Define a [go-kit endpoint function](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint).
+Define request model tagged with json.
 
-#### Example
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/endpoint/create.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/endpoint/create.go)
 ```
-type Create struct{}
+import (
+	"context"
+	"fmt"
+	"net/http"
 
-func CreateEndpoint() *server.Endpoint {
-    createObj := &Create{}
-    return server.NewEndpoint(createObj)
+	"github.com/go-kit/kit/endpoint"
+	"github.com/payfazz/fazzkit/server/servererror"
+)
+
+type FooModel struct {
+	bar int    `json:bar`
+	baz string `json:baz`
 }
 
-func (c *Create) Endpoint() kitEndpoint.Endpoint {
-    return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-        reqData := request.(*model.CreateUser)
+func Foo() endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		input, ok := request.(*FooModel)
+		if !ok {
+			return nil, &servererror.ErrorWithStatusCode{"invalid model", http.StatusInternalServerError}
+		}
 
-        hashed := *reqData.Password + "_hashed"
-        return &model.User{
-            Username:  reqData.Username,
-            Password:  &hashed,
-            CreatedAt: time.Now(),
-            UpdatedAt: time.Now(),
-        }, nil
-    }
+		fmt.Println("processing object...", input)
+		return request, nil
+	}
 }
 ```
 
@@ -48,33 +51,105 @@ func (c *Create) Endpoint() kitEndpoint.Endpoint {
 
 ### Implement Endpoint to HTTP Transport
 
-Use **NewHTTPServer** method from object created from **NewEndpoint()** function in server package. By default, HTTP decode data based on json tag on models.
+Use **NewHTTPServer** function from server package.
 
 | Param                             | Description                                                             |
 |-----------------------------------|:------------------------------------------------------------------------|
-| decodeModel &lt;interface{}>         | empty decode model, must be an address to struct model tagged with json |
-| ...options &lt;ServerOption>         | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/grpc#ServerOption) |
+| Endpoint                          | [go-kit Endpoint](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint) |
+| HTTPOption                        | fazzkit HTTPOption |
+| ...ServerOption                   | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/http#ServerOption) |
 
-#### Example
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/http/server.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/http/server.go)
+Put your decode model in fazzkit HTTPOption. This model will be used for decoding and validating request from HTTP. By default, your data decoded from json body.
 
 ```
-createEndpoint := endpoint.CreateEndpoint()
-createEndpoint.Use(middleware.LogAndInstrumentation(libkitUser, "URL___METHOD", "/user"))
+import (
+	"net/http"
 
-createEndpoint.NewHTTPServer(&model.CreateUser{}, options...)
+	"github.com/payfazz/fazzkit/server"
+)
+
+//MakeHandler make http handler for foo example
+func MakeHandler() http.Handler {
+	e := Foo()
+
+	httpOpt := server.HTTPOption{
+		DecodeModel: &model.FooModel{},
+	}
+
+	return server.NewHTTPServer(e, httpOpt)
+}
+```
+
+Add fazzkit logger to HTTPOption to measure request count and request latency with prometheus.
+
+```
+import (
+	"net/http"
+
+	"github.com/payfazz/fazzkit/server"
+	"github.com/go-kit/kit/log"
+)
+
+//MakeHandler make http handler for foo example
+func MakeHandler(logger log.Logger) http.Handler {
+	e := Foo()
+
+	serverInfo := server.HTTPOption{
+		DecodeModel: &model.CreateFoo{},
+		Logger: &server.Logger{
+			Logger:    logger,
+			Namespace: "test",
+			Subsystem: "foo",
+			Action:    "GET",
+		},
+	}
+
+	return server.NewHTTPServer(e, httpOpt)
+}
+```
+
+Add some go-kit server options when needed.
+
+```
+import (
+	"net/http"
+
+	"github.com/payfazz/fazzkit/server"
+	"github.com/go-kit/kit/log"
+	kithttp "github.com/go-kit/kit/transport/http"
+)
+
+//MakeHandler make http handler for foo example
+func MakeHandler(logger log.Logger) http.Handler {
+	e := Foo()
+
+	serverInfo := server.HTTPOption{
+		DecodeModel: &model.CreateFoo{},
+		Logger: &server.Logger{
+			Logger:    logger,
+			Namespace: "test",
+			Subsystem: "foo",
+			Action:    "GET",
+		},
+	}
+
+	opts := []kithttp.ServerOption{
+		kithttp.ServerErrorLogger(logger),
+	}
+
+	return server.NewHTTPServer(e, httpOpt, opts)
+}
 ```
 
 ### Decode HTTP data using URL parameter
 
 Use **httpurl** tag on models.
 
-#### Example
-
 ```
-type User struct {
-    ID *string `httpurl:"id" validate:"required" json:"id"`
+type FooModel struct {
+	bar int    `json:bar`
+	baz string `json:baz`
+	ID  string `httpurl:id`
 }
 ```
 
@@ -82,71 +157,26 @@ type User struct {
 
 ### Implement Endpoint to GRPC Transport
 
-Use **NewGRPCServer** method from object created from **NewEndpoint()** function in server package. By default, GRPC decode data based on json tag on models.
+Use **NewGRPCServer** function from server package.
 
 | Param                             | Description                                                             |
 |-----------------------------------|:------------------------------------------------------------------------|
-| decodeModel &lt;interface{}>         | empty decode model, must be an address to struct model tagged with json |
-| encodeModel &lt;interface{}>         | empty encode model, must be an address to response protobuf struct      |
-| ...options &lt;ServerOption>         | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/grpc#ServerOption) |
+| Endpoint                          | [go-kit Endpoint](https://godoc.org/github.com/go-kit/kit/endpoint#Endpoint) |
+| GRPCOption                        | fazzkit GRPCOption |
+| ...ServerOption                   | [go-kit grpc server option](https://godoc.org/github.com/go-kit/kit/transport/http#ServerOption) |
 
-#### Example
+[Example](https://github.com/payfazz/fazzkit/blob/master/examples/server/internal/helloworld/transport/grpc/server.go)
 
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/transport/grpc/server.go)
-
-```
-createEndpoint := endpoint.CreateEndpoint()
-createEndpoint.Use(middleware.LogAndInstrumentation(libkitUser, "grpc_function", "create"))
-
-createEndpoint.NewGRPCServer(&model.CreateUser{}, &pb.CreateUserResponse{}, options...)
-```
 <a name="validator"/>
 
 ### Validator
 
 By default, endpoint will using [gopkg.in/go-playground/validator.v9](https://gopkg.in/go-playground/validator.v9) on decode struct.
 
-
-#### Example
-
-[https://github.com/payfazz/kitx/blob/master/internal/domain/user/model/createuser.go](https://github.com/payfazz/kitx/blob/master/internal/domain/user/model/createuser.go)
-
 ```
 type CreateUser struct {
     Username *string `json:"username" validate:"required"`
     Password *string `json:"password" validate:"required"`
     FooBar   string  `validate:"min=3"`
-}
-```
-
-<a name="override_validator"/>
-
-### Override Validator
-
-Endpoint validator can be added with another validator functions using **AddValidator(ValidationFunc)**. To reset all existing validators, use **SetValidator(ValidationFunc)**.
-
-```
-type ValidationFunc func(req interface{}) error
-```
-
-#### Example
-
-```
-type Create struct{}
-
-func CreateEndpoint() *server.Endpoint {
-    createObj := &Create{}
-    return server.NewEndpoint(createObj).SetValidator(validate)
-}
-
-func validate(req interface{}) error {
-    data := req.(*model.CreateUser)
-    if *data.Username == "" {
-        return errors.New("username cannot be null")
-    }
-    if *data.Password == "" {
-        return errors.New("password cannot be null")
-    }
-    return nil
 }
 ```

@@ -6,17 +6,17 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 
-	"github.com/payfazz/fazzkit/examples/server/internal/foo/endpoint"
-	"github.com/payfazz/fazzkit/examples/server/internal/foo/model"
+	"github.com/payfazz/fazzkit/examples/server/internal/helloworld/endpoint"
+	"github.com/payfazz/fazzkit/examples/server/internal/helloworld/model"
 	"github.com/payfazz/fazzkit/server"
 )
 
 //MakeHandler make http handler for foo example
 func MakeHandler(logger kitlog.Logger, opts ...kithttp.ServerOption) http.Handler {
-	e := endpoint.Create()
+	e := endpoint.Greet()
 
 	serverInfo := server.HTTPOption{
-		DecodeModel: &model.CreateFoo{},
+		DecodeModel: &model.Greet{},
 		Logger: &server.Logger{
 			Logger:    logger,
 			Namespace: "test",
