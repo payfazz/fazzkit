@@ -30,9 +30,7 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 
 	if val, ok := loggers[key]; ok {
 		logObj = *val
-		fmt.Println("use cache")
 	} else {
-		fmt.Println("create cache")
 		lock.Lock()
 		logObj = logger.New(
 			kitprometheus.NewCounterFrom(prometheus.CounterOpts{
