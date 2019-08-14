@@ -26,7 +26,6 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 	var logObj logger.Logger
 
 	key := fmt.Sprintf("%s_%s", namespace, subsystem)
-	fmt.Println(key)
 
 	if val, ok := loggers[key]; ok {
 		logObj = *val
