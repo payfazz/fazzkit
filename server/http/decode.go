@@ -53,6 +53,11 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 		}
 
+		err = GetQueryUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
 		contentType := r.Header["Content-Type"]
 
 		if common.StringInSlice("application/json", contentType) {
@@ -133,6 +138,50 @@ func getURLParam(ctx context.Context, model interface{}, r *http.Request, param 
 		val.Field(valIdx).Set(reflect.ValueOf(v))
 	default:
 		fmt.Println("unknown", valtype)
+	}
+
+	return nil
+}
+
+//GetQueryUsingTag ...
+func GetQueryUsingTag(ctx context.Context, model interface{}, r *http.Request) error {
+	var err error
+	typ := reflect.TypeOf(model).Elem()
+	for i := 0; i < typ.NumField(); i++ {
+		tag := typ.Field(i).Tag.Get("httpquery")
+		if tag != "" {
+			err = getQuery(ctx, model, r, tag, i)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getQuery(ctx context.Context, model interface{}, r *http.Request, query string, valIdx int) error {
+	value := r.URL.Query().Get(query)
+	if value == "" {
+		return nil
+	}
+
+	val := reflect.ValueOf(model).Elem()
+
+	switch valtype := val.Field(valIdx).Type().String(); valtype {
+	case "string":
+		val.Field(valIdx).SetString(value)
+	case "int64":
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).SetInt(v)
+	case "uuid.UUID":
+		v, err := uuid.Parse(value)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).Set(reflect.ValueOf(v))
 	}
 
 	return nil
