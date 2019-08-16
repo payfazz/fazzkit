@@ -48,6 +48,15 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			_model, _ = common.DeepCopy(model)
 		}
 
+		contentType := r.Header["Content-Type"]
+
+		if common.StringInSlice("application/json", contentType) {
+			_model, err = ParseJSON(ctx, r, _model)
+			if err != nil {
+				return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			}
+		}
+
 		err = getURLParamUsingTag(ctx, _model, r)
 		if err != nil {
 			return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
@@ -56,15 +65,6 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 		err = GetQueryUsingTag(ctx, _model, r)
 		if err != nil {
 			return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
-		}
-
-		contentType := r.Header["Content-Type"]
-
-		if common.StringInSlice("application/json", contentType) {
-			_model, err = ParseJSON(ctx, r, _model)
-			if err != nil {
-				return nil, &servererror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
-			}
 		}
 
 		err = validator.DefaultValidator()(_model)
