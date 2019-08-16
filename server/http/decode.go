@@ -170,6 +170,8 @@ func getQuery(ctx context.Context, model interface{}, r *http.Request, query str
 	switch valtype := val.Field(valIdx).Type().String(); valtype {
 	case "string":
 		val.Field(valIdx).SetString(value)
+	case "int":
+		fallthrough
 	case "int64":
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
