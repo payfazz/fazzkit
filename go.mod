@@ -15,6 +15,8 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.16.0 // indirect
 	github.com/nats-io/stan.go v0.5.0
 	github.com/oklog/oklog v0.3.2

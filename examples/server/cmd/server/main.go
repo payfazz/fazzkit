@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/payfazz/fazzkit/examples/server/httperror"
+
 	"github.com/go-chi/chi"
 	"github.com/oklog/oklog/pkg/group"
 
@@ -39,6 +41,7 @@ func main() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
+		logger.Log("grpc", "1301")
 		return nil
 	}, func(err error) {
 		panic(err)
@@ -55,14 +58,12 @@ func main() {
 		httpLogger := kitlog.With(logger, "component", "http")
 
 		r.Mount("/v1", makeHandler(httpLogger))
-
-		http.ListenAndServe(":1300", r)
-		return nil
+		return http.ListenAndServe(":1300", r)
 	}, func(err error) {
 		panic(err)
 	})
 
-	g.Run()
+	_ = logger.Log("run", g.Run())
 }
 
 func makeHandler(logger kitlog.Logger) http.Handler {
@@ -70,6 +71,7 @@ func makeHandler(logger kitlog.Logger) http.Handler {
 
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
+		kithttp.ServerErrorEncoder(httperror.EncodeError),
 	}
 
 	r.Post("/foo/{id}", foohttp.MakeHandler(logger, opts...).ServeHTTP)

@@ -10,8 +10,8 @@ import (
 	"github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 
+	"github.com/payfazz/fazzkit/examples/server/httperror"
 	"github.com/payfazz/fazzkit/server/logger"
-	"github.com/payfazz/fazzkit/server/servererror"
 	"github.com/payfazz/fazzkit/server/validator"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -62,7 +62,7 @@ func Validator() endpoint.Middleware {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			err = validator.DefaultValidator()(request)
 			if err != nil {
-				return nil, &servererror.ErrorWithStatusCode{
+				return nil, &httperror.ErrorWithStatusCode{
 					Err:        err.Error(),
 					StatusCode: http.StatusUnprocessableEntity,
 				}
