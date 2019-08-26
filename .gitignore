@@ -13,3 +13,5 @@
 
 *.boltdb
 *.db
+
+.idea/

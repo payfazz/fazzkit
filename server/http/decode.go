@@ -48,12 +48,13 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			_model, _ = common.DeepCopy(model)
 		}
 
-		contentType := r.Header["Content-Type"]
-
-		if common.StringInSlice("application/json", contentType) {
-			_model, err = ParseJSON(ctx, r, _model)
-			if err != nil {
-				return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		if r.ContentLength != 0 {
+			contentType := r.Header["Content-Type"]
+			if common.StringInSlice("application/json", contentType) {
+				_model, err = ParseJSON(ctx, r, _model)
+				if err != nil {
+					return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+				}
 			}
 		}
 
