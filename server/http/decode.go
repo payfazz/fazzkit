@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -118,30 +117,7 @@ func getURLParam(ctx context.Context, model interface{}, r *http.Request, param 
 		return nil
 	}
 
-	val := reflect.ValueOf(model).Elem()
-
-	switch valtype := val.Field(valIdx).Type().String(); valtype {
-	case "string":
-		val.Field(valIdx).SetString(value)
-	case "int":
-		fallthrough
-	case "int64":
-		v, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			return err
-		}
-		val.Field(valIdx).SetInt(v)
-	case "uuid.UUID":
-		v, err := uuid.Parse(value)
-		if err != nil {
-			return err
-		}
-		val.Field(valIdx).Set(reflect.ValueOf(v))
-	default:
-		fmt.Println("unknown", valtype)
-	}
-
-	return nil
+	return fillFieldValue(model, value, valIdx)
 }
 
 //GetQueryUsingTag ...
@@ -166,19 +142,33 @@ func getQuery(ctx context.Context, model interface{}, r *http.Request, query str
 		return nil
 	}
 
+	return fillFieldValue(model, value, valIdx)
+}
+
+func fillFieldValue(model interface{}, value string, valIdx int) error {
 	val := reflect.ValueOf(model).Elem()
 
 	switch valtype := val.Field(valIdx).Type().String(); valtype {
 	case "string":
 		val.Field(valIdx).SetString(value)
 	case "int":
-		fallthrough
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).SetInt(v)
 	case "int64":
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return err
 		}
 		val.Field(valIdx).SetInt(v)
+	case "bool":
+		v, err := strconv.ParseBool(value)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).SetBool(v)
 	case "uuid.UUID":
 		v, err := uuid.Parse(value)
 		if err != nil {
