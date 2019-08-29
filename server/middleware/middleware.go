@@ -43,7 +43,7 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 				Subsystem: subsystem,
 				Name:      "request_latency_microseconds",
 				Help:      "Total duration of requests in microseconds.",
-			}, []string{"method"}),
+			}, []string{"function"}),
 			kitLogger,
 		)
 
