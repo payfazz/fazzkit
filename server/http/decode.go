@@ -67,6 +67,11 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
 		}
 
+		err = GetHeaderUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
 		err = validator.DefaultValidator()(_model)
 		if err != nil {
 			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
@@ -138,6 +143,31 @@ func GetQueryUsingTag(ctx context.Context, model interface{}, r *http.Request) e
 
 func getQuery(ctx context.Context, model interface{}, r *http.Request, query string, valIdx int) error {
 	value := r.URL.Query().Get(query)
+	if value == "" {
+		return nil
+	}
+
+	return fillFieldValue(model, value, valIdx)
+}
+
+//GetHeaderUsingTag ...
+func GetHeaderUsingTag(ctx context.Context, model interface{}, r *http.Request) error {
+	var err error
+	typ := reflect.TypeOf(model).Elem()
+	for i := 0; i < typ.NumField(); i++ {
+		tag := typ.Field(i).Tag.Get("httpheader")
+		if tag != "" {
+			err = getHeader(ctx, model, r, tag, i)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getHeader(ctx context.Context, model interface{}, r *http.Request, header string, valIdx int) error {
+	value := r.Header.Get(header)
 	if value == "" {
 		return nil
 	}
