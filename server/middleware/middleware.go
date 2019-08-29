@@ -37,7 +37,7 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 				Subsystem: subsystem,
 				Name:      "request_count",
 				Help:      "Number of request received.",
-			}, []string{"method"}),
+			}, []string{"function"}),
 			kitprometheus.NewSummaryFrom(prometheus.SummaryOpts{
 				Namespace: namespace,
 				Subsystem: subsystem,

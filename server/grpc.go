@@ -17,8 +17,12 @@ type GRPCOption struct {
 
 //NewGRPCServer create go kit GRPC server
 func NewGRPCServer(e endpoint.Endpoint, grpcOpt GRPCOption, options ...grpc.ServerOption) *grpc.Server {
-	mval := middleware.Validator()
-	middlewares := endpoint.Chain(mval)
+	middlewares := middleware.Nop()
+
+	if grpcOpt.DecodeModel != nil {
+		mval := middleware.Validator()
+		middlewares = endpoint.Chain(mval)
+	}
 
 	if grpcOpt.Logger != nil {
 		mlog := middleware.LogAndInstrumentation(
