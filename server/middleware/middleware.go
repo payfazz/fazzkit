@@ -52,7 +52,7 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 	}
 
 	return func(f endpoint.Endpoint) endpoint.Endpoint {
-		return logObj.Instrumentation("method", action, logObj.Log("method", action, f))
+		return logObj.Instrumentation("function", action, logObj.Log("function", action, f))
 	}
 }
 
