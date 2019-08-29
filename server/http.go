@@ -18,8 +18,12 @@ type HTTPOption struct {
 
 //NewHTTPServer create go kit HTTP server
 func NewHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) netHTTP.Handler {
-	mval := middleware.Validator()
-	middlewares := endpoint.Chain(mval)
+	middlewares := middleware.Nop()
+
+	if httpOpt.DecodeModel != nil {
+		mval := middleware.Validator()
+		middlewares = endpoint.Chain(mval)
+	}
 
 	if httpOpt.Logger != nil {
 		mlog := middleware.LogAndInstrumentation(
