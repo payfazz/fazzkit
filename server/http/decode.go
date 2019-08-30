@@ -81,6 +81,60 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 	}
 }
 
+//DecodeJSON generate a decode function to decode request body (json) to model
+func DecodeJSON(model interface{}) func(context.Context, *http.Request) (request interface{}, err error) {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		if model == nil {
+			return nil, nil
+		}
+
+		var _model interface{}
+		var err error
+
+		param, ok := model.(DecodeParam)
+		if ok {
+			_model, _ = common.DeepCopy(param.Model)
+			for _, option := range param.Options {
+				err = option(ctx, _model, r)
+				if err != nil {
+					return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+				}
+			}
+		} else {
+			_model, _ = common.DeepCopy(model)
+		}
+
+		if r.ContentLength != 0 {
+			_model, err = ParseJSON(ctx, r, _model)
+			if err != nil {
+				return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			}
+		}
+
+		err = getURLParamUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
+		err = GetQueryUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
+		err = GetHeaderUsingTag(ctx, _model, r)
+		if err != nil {
+			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
+		err = validator.DefaultValidator()(_model)
+		if err != nil {
+			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+		}
+
+		return _model, nil
+	}
+}
+
 //GetURLParam built-in DecodeOptions for decode using url params
 func GetURLParam(params []string) DecodeOptions {
 	return func(ctx context.Context, model interface{}, r *http.Request) error {
