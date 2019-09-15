@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/payfazz/fazzkit/examples/server/httperror"
 	"github.com/payfazz/fazzkit/examples/server/internal/foo/model"
+	"github.com/payfazz/fazzkit/server/httperror"
 )
 
 //Create dummy create endpoint for example

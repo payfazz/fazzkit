@@ -10,7 +10,7 @@ import (
 	"github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 
-	"github.com/payfazz/fazzkit/examples/server/httperror"
+	"github.com/payfazz/fazzkit/server/httperror"
 	"github.com/payfazz/fazzkit/server/logger"
 	"github.com/payfazz/fazzkit/server/validator"
 

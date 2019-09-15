@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/payfazz/fazzkit/examples/server/httperror"
+	"github.com/payfazz/fazzkit/server/httperror"
 
 	"github.com/go-chi/chi"
 	"github.com/oklog/oklog/pkg/group"
