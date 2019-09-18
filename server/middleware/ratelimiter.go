@@ -24,8 +24,8 @@ func RateLimiter() endpoint.Middleware {
 
 var limiters map[string]*rate.Limiter
 
-//RateLimiterWithAuthToken create limiter by given key
-func RateLimiterWithAuthToken(key string, limit *rate.Limiter) endpoint.Middleware {
+//RateLimiterByKey create limiter by given key
+func RateLimiterByKey(key string, limit *rate.Limiter) endpoint.Middleware {
 	if nil == limit {
 		limit = DefaultLimiter()
 	}
