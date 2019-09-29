@@ -31,7 +31,7 @@ func RateLimiterByKey(key string, limit *rate.Limiter) endpoint.Middleware {
 	}
 
 	if _, ok := limiters[key]; !ok {
-		limiters[key] = limit
+		limiters[key] = rate.NewLimiter(limit.Limit(), limit.Burst())
 	}
 
 	return ratelimit.NewErroringLimiter(limiters[key])
