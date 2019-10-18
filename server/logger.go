@@ -8,4 +8,5 @@ type Logger struct {
 	Namespace string
 	Subsystem string
 	Action    string
+	Domain    string
 }

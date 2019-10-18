@@ -31,6 +31,7 @@ func NewHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.Serv
 			httpOpt.Logger.Namespace,
 			httpOpt.Logger.Subsystem,
 			httpOpt.Logger.Action,
+			httpOpt.Logger.Domain,
 		)
 		middlewares = endpoint.Chain(mlog, middlewares)
 	}

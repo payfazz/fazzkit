@@ -30,6 +30,7 @@ func NewGRPCServer(e endpoint.Endpoint, grpcOpt GRPCOption, options ...grpc.Serv
 			grpcOpt.Logger.Namespace,
 			grpcOpt.Logger.Subsystem,
 			grpcOpt.Logger.Action,
+			grpcOpt.Logger.Domain,
 		)
 		middlewares = endpoint.Chain(mlog, middlewares)
 	}
