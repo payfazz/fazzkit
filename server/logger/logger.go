@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -20,12 +19,12 @@ type Request struct {
 }
 
 //Callback ...
-type Callback (func(request Request) (interface{}, error))
+type Callback func(request Request) (interface{}, error)
 
 //Logger ...
 type Logger struct {
-	callUpdate     chan (interface{})
-	callError      chan (error)
+	callUpdate     chan interface{}
+	callError      chan error
 	requestCount   metrics.Counter
 	requestLatency metrics.Histogram
 	logger         log.Logger
@@ -34,8 +33,8 @@ type Logger struct {
 //New create gokit layer Logger
 func New(counter metrics.Counter, latency metrics.Histogram, logger log.Logger) Logger {
 	return Logger{
-		callUpdate:     make(chan (interface{})),
-		callError:      make(chan (error)),
+		callUpdate:     make(chan interface{}),
+		callError:      make(chan error),
 		requestCount:   counter,
 		requestLatency: latency,
 		logger:         logger,
@@ -44,21 +43,25 @@ func New(counter metrics.Counter, latency metrics.Histogram, logger log.Logger) 
 
 //Instrumentation ...
 func (m Logger) Instrumentation(
-	method string,
-	action string,
 	f func(ctx context.Context, request interface{}) (interface{}, error),
+	keyvals ...interface{},
+
 ) func(ctx context.Context, request interface{}) (interface{}, error) {
 	return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
 		defer func(begin time.Time) {
-			m.requestCount.With(method, action).Add(1)
-			if err != nil {
-				m.requestCount.With(method, fmt.Sprintf("%s_FAILED", action)).Add(1)
-				m.requestLatency.With(method, fmt.Sprintf("%s_FAILED", action)).Observe(time.Since(begin).Seconds())
-			} else {
-				m.requestCount.With(method, fmt.Sprintf("%s_SUCCESS", action)).Add(1)
-				m.requestLatency.With(method, fmt.Sprintf("%s_SUCCESS", action)).Observe(time.Since(begin).Seconds())
+			labelValues := make([]string, len(keyvals))
+			for i := 0; i < len(keyvals); i++ {
+				labelValues[i] = keyvals[i].(string)
 			}
-			m.requestLatency.With(method, action).Observe(time.Since(begin).Seconds())
+
+			if err != nil {
+				labelValues = append(labelValues, "status", "failed")
+			} else {
+				labelValues = append(labelValues, "status", "success")
+			}
+
+			m.requestCount.With(labelValues...).Add(1)
+			m.requestLatency.With(labelValues...).Observe(time.Since(begin).Seconds())
 		}(time.Now())
 		return f(ctx, request)
 	}
@@ -66,20 +69,18 @@ func (m Logger) Instrumentation(
 
 //Log ...
 func (m Logger) Log(
-	method string,
-	action string,
 	f func(ctx context.Context, request interface{}) (interface{}, error),
+	keyvals ...interface{},
 ) func(ctx context.Context, request interface{}) (interface{}, error) {
 	return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
 		defer func(begin time.Time) {
 			jsonString, _ := json.Marshal(request)
-			m.logger.Log(
-				"method", method,
-				"action", action,
-				"params", jsonString,
-				"took", time.Since(begin),
-				"err", err,
+			keyvals = append(keyvals,
+				"params", string(jsonString),
+				"took", time.Since(begin).String(),
+				"err", err.Error(),
 			)
+			_ = m.logger.Log(keyvals...)
 		}(time.Now())
 		return f(ctx, request)
 	}

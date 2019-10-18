@@ -15,7 +15,7 @@ var lock sync.Mutex
 
 //LogAndInstrumentation wrap endpoint function with logger.Log and logger.Instrumentation
 //This middleware will measure request_count and request_latency_microseconds
-func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem string, action string) endpoint.Middleware {
+func LogAndInstrumentation(kitLogger log.Logger, namespace, subsystem, action, domain string) endpoint.Middleware {
 	var logObj logger.Logger
 
 	key := fmt.Sprintf("%s_%s", namespace, subsystem)
@@ -30,13 +30,13 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 				Subsystem: subsystem,
 				Name:      "request_count",
 				Help:      "Number of request received.",
-			}, []string{"function"}),
-			kitprometheus.NewSummaryFrom(prometheus.SummaryOpts{
+			}, []string{"function", "status", "domain"}),
+			kitprometheus.NewHistogramFrom(prometheus.HistogramOpts{
 				Namespace: namespace,
 				Subsystem: subsystem,
-				Name:      "request_latency_microseconds",
-				Help:      "Total duration of requests in microseconds.",
-			}, []string{"function"}),
+				Name:      "request_latency",
+				Help:      "Total duration of requests in seconds.",
+			}, []string{"function", "status", "domain"}),
 			kitLogger,
 		)
 
@@ -45,6 +45,11 @@ func LogAndInstrumentation(kitLogger log.Logger, namespace string, subsystem str
 	}
 
 	return func(f endpoint.Endpoint) endpoint.Endpoint {
-		return logObj.Instrumentation("function", action, logObj.Log("function", action, f))
+		keyvals := make([]interface{}, 0)
+		keyvals = append(keyvals,
+			"function", action,
+			"domain", domain,
+		)
+		return logObj.Instrumentation(logObj.Log(f, keyvals...), keyvals...)
 	}
 }
