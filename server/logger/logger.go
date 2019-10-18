@@ -78,8 +78,11 @@ func (m Logger) Log(
 			keyvals = append(keyvals,
 				"params", string(jsonString),
 				"took", time.Since(begin).String(),
-				"err", err.Error(),
 			)
+
+			if nil != err {
+				keyvals = append(keyvals, "err", err.Error())
+			}
 			_ = m.logger.Log(keyvals...)
 		}(time.Now())
 		return f(ctx, request)
