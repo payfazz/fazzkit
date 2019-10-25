@@ -74,16 +74,21 @@ func (m Logger) Log(
 ) func(ctx context.Context, request interface{}) (interface{}, error) {
 	return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
 		defer func(begin time.Time) {
+			kv := make([]interface{}, len(keyvals))
+			for i := 0; i < len(keyvals); i++ {
+				kv[i] = keyvals[i]
+			}
+
 			jsonString, _ := json.Marshal(request)
-			keyvals = append(keyvals,
+			kv = append(kv,
 				"params", string(jsonString),
 				"took", time.Since(begin).String(),
 			)
 
 			if nil != err {
-				keyvals = append(keyvals, "err", err.Error())
+				kv = append(kv, "err", err.Error())
 			}
-			_ = m.logger.Log(keyvals...)
+			_ = m.logger.Log(kv...)
 		}(time.Now())
 		return f(ctx, request)
 	}
