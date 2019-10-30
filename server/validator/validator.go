@@ -3,7 +3,7 @@ package validator
 import (
 	"sync"
 
-	"github.com/payfazz/go-validator/pkg/validator"
+	"github.com/payfazz/go-validator/validator"
 )
 
 //ValidationFunc function used in server validator

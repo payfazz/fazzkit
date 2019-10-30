@@ -17,7 +17,7 @@ require (
 	github.com/nats-io/stan.go v0.5.0
 	github.com/oklog/oklog v0.3.2
 	github.com/oklog/run v1.0.0 // indirect
-	github.com/payfazz/go-validator v1.0.1
+	github.com/payfazz/go-validator v1.0.2
 	github.com/prometheus/client_golang v1.1.0
 	go.etcd.io/bbolt v1.3.3
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
