@@ -3,10 +3,14 @@ package logger
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
+	"github.com/payfazz/fazzkit/server/httperror"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 //Request ...
@@ -55,7 +59,22 @@ func (m Logger) Instrumentation(
 			}
 
 			if err != nil {
-				labelValues = append(labelValues, "status", "failed")
+				errStatus := "failed"
+				errModel, ok := err.(*httperror.ErrorWithStatusCode)
+				if ok {
+					if errModel.StatusCode == http.StatusInternalServerError {
+						errStatus = "critical"
+					}
+				} else {
+					errModel, ok := status.FromError(err)
+					if ok {
+						if errModel.Code() == codes.Internal {
+							errStatus = "critical"
+						}
+					}
+				}
+
+				labelValues = append(labelValues, "status", errStatus)
 			} else {
 				labelValues = append(labelValues, "status", "success")
 			}
