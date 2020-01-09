@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,7 +16,7 @@ func Create() endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		input, ok := request.(*model.CreateFoo)
 		if !ok {
-			return nil, &httperror.ErrorWithStatusCode{"invalid model", http.StatusInternalServerError}
+			return nil, &httperror.ErrorWithStatusCode{errors.New("invalid model"), http.StatusInternalServerError}
 		}
 
 		fmt.Println("creating object...", input)
