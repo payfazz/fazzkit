@@ -40,7 +40,7 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			for _, option := range param.Options {
 				err = option(ctx, _model, r)
 				if err != nil {
-					return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+					return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 				}
 			}
 		} else {
@@ -52,29 +52,29 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 			if common.StringInSlice("application/json", contentType) {
 				_model, err = ParseJSON(ctx, r, _model)
 				if err != nil {
-					return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+					return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 				}
 			}
 		}
 
 		err = getURLParamUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = GetQueryUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = GetHeaderUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = validator.DefaultValidator()(_model)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		return _model, nil
@@ -97,7 +97,7 @@ func DecodeJSON(model interface{}) func(context.Context, *http.Request) (request
 			for _, option := range param.Options {
 				err = option(ctx, _model, r)
 				if err != nil {
-					return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+					return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 				}
 			}
 		} else {
@@ -107,28 +107,28 @@ func DecodeJSON(model interface{}) func(context.Context, *http.Request) (request
 		if r.ContentLength != 0 {
 			_model, err = ParseJSON(ctx, r, _model)
 			if err != nil {
-				return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+				return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 			}
 		}
 
 		err = getURLParamUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = GetQueryUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = GetHeaderUsingTag(ctx, _model, r)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		err = validator.DefaultValidator()(_model)
 		if err != nil {
-			return nil, &httperror.ErrorWithStatusCode{err.Error(), http.StatusUnprocessableEntity}
+			return nil, &httperror.ErrorWithStatusCode{err, http.StatusUnprocessableEntity}
 		}
 
 		return _model, nil

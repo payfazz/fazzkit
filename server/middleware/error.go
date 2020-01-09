@@ -19,7 +19,7 @@ func TranslateErrorHTTP(errMapper errorhttp.ErrorMapper) endpoint.Middleware {
 			}
 			httpCode := errMapper.GetCode(e)
 			return r, &httperror.ErrorWithStatusCode{
-				Err:        e.Error(),
+				Err:        e,
 				StatusCode: httpCode,
 			}
 		}
