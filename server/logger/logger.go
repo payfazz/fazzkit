@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
 	"github.com/payfazz/fazzkit/server/httperror"
+	fazzerror "github.com/payfazz/fazzkit/server/transport/error"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -106,6 +107,9 @@ func (m Logger) Log(
 
 			if nil != err {
 				kv = append(kv, "err", err.Error())
+				if errWithInternalCode, ok := err.(*fazzerror.ErrorWithInternalCode); ok {
+					kv = append(kv, "code", errWithInternalCode.Code)
+				}
 			}
 			_ = m.logger.Log(kv...)
 		}(time.Now())
