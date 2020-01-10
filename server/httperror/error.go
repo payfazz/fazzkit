@@ -44,9 +44,7 @@ func EncodeErrorWithInternalCode(_ context.Context, err error, w http.ResponseWr
 		if errWithInternalCode, ok := errWithStatusCode.Err.(*transportError.ErrorWithInternalCode); ok {
 			internalCode = errWithInternalCode.Code
 		}
-	}
-
-	if errWithInternalCode, ok := err.(*transportError.ErrorWithInternalCode); ok {
+	} else if errWithInternalCode, ok := err.(*transportError.ErrorWithInternalCode); ok {
 		internalCode = errWithInternalCode.Code
 	}
 
