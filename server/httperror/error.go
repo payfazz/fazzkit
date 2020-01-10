@@ -46,6 +46,10 @@ func EncodeErrorWithInternalCode(_ context.Context, err error, w http.ResponseWr
 		}
 	}
 
+	if errWithInternalCode, ok := err.(*transportError.ErrorWithInternalCode); ok {
+		internalCode = errWithInternalCode.Code
+	}
+
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),

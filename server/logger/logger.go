@@ -108,7 +108,7 @@ func (m Logger) Log(
 			if nil != err {
 				kv = append(kv, "err", err.Error())
 				if errWithInternalCode, ok := err.(*fazzerror.ErrorWithInternalCode); ok {
-					kv = append(kv, "code", errWithInternalCode.Code)
+					kv = append(kv, "err_code", errWithInternalCode.Code)
 				}
 			}
 			_ = m.logger.Log(kv...)
