@@ -15,3 +15,8 @@ func NewErrorWithInternalCode(code string, err error) *ErrorWithInternalCode {
 func (err *ErrorWithInternalCode) Error() string {
 	return err.Err.Error()
 }
+
+
+func (err *ErrorWithInternalCode) Wrappee() error {
+	return err.Err
+}

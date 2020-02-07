@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	transportError "github.com/payfazz/fazzkit/server/transport/error"
 )
 
 //ErrorWithStatusCode error with http status code
@@ -18,8 +16,12 @@ func (e *ErrorWithStatusCode) Error() string {
 	return e.Err.Error()
 }
 
+func (e *ErrorWithStatusCode) Wrappee() error {
+	return e.Err
+}
+
 //EncodeError ...
-func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
+func EncodeError(ctx context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	code := http.StatusInternalServerError
@@ -28,28 +30,20 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),
 	})
 }
 
 //EncodeErrorWithInternalCode ...
-func EncodeErrorWithInternalCode(_ context.Context, err error, w http.ResponseWriter) {
+func EncodeErrorWithInternalCode(ctx context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	code := http.StatusInternalServerError
-	internalCode := "-1"
-	if errWithStatusCode, ok := err.(*ErrorWithStatusCode); ok {
-		code = errWithStatusCode.StatusCode
-		if errWithInternalCode, ok := errWithStatusCode.Err.(*transportError.ErrorWithInternalCode); ok {
-			internalCode = errWithInternalCode.Code
-		}
-	} else if errWithInternalCode, ok := err.(*transportError.ErrorWithInternalCode); ok {
-		internalCode = errWithInternalCode.Code
-	}
+	code := getStatusCode(err)
+	internalCode := getInternalCode(err)
 
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),
 		"code":  internalCode,
 	})

@@ -9,6 +9,10 @@ type TransportError struct {
 	Code  codes.Code
 }
 
+func (e *TransportError) Wrappee() error {
+	return e.Error
+}
+
 type ErrorMapper struct {
 	Error map[error]*TransportError
 }
