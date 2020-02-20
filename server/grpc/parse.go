@@ -21,13 +21,24 @@ func Parse(ctx context.Context, request interface{}, model interface{}) (interfa
 	mapString := make(map[string]interface{})
 
 	err = json.Unmarshal([]byte(stringProtoMessage), &mapString)
+
+	if m, ok := model.(proto.Message); ok {
+		jsonByte, err := json.Marshal(mapString)
+		err = jsonpb.UnmarshalString(string(jsonByte), m)
+		if err != nil {
+			return nil, err
+		}
+
+		return m, nil
+	}
+
 	for key, value := range mapString {
 		keySnake := strcase.ToSnake(key)
 		mapString[keySnake] = value
 	}
 
-	jsonString, err := json.Marshal(mapString)
-	err = json.Unmarshal(jsonString, model)
+	jsonByte, err := json.Marshal(mapString)
+	err = json.Unmarshal(jsonByte, model)
 	if err != nil {
 		return nil, err
 	}
