@@ -259,6 +259,27 @@ func fillFieldValue(model interface{}, value string, valIdx int) error {
 			return err
 		}
 		val.Field(valIdx).Set(reflect.ValueOf(v))
+	case "*string":
+		val.Field(valIdx).Set(reflect.ValueOf(&value))
+	case "*int":
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		_v := int(v)
+		val.Field(valIdx).Set(reflect.ValueOf(&_v))
+	case "*int64":
+		v, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).Set(reflect.ValueOf(&v))
+	case "*bool":
+		v, err := strconv.ParseBool(value)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).Set(reflect.ValueOf(&v))
 	}
 
 	return nil
