@@ -2,6 +2,7 @@ package http_test
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/payfazz/fazzkit/server/http"
 	nethttp "net/http"
 	"testing"
@@ -11,6 +12,7 @@ type Foo struct {
 	A int `httpquery:"a"`
 	B *int `httpquery:"b"`
 	C *string `httpquery:"c"`
+	D *uuid.UUID `httpquery:"d"`
 }
 
 func TestDecode(t *testing.T) {
@@ -23,6 +25,8 @@ func TestDecode(t *testing.T) {
 	q.Add("a", "3")
 	q.Add("b", "4")
 	q.Add("c", "hello")
+	q.Add("d", "39e0233b-9ffd-4718-abe2-17b6d6589ef2")
+
 	request.URL.RawQuery = q.Encode()
 
 	decodeFunc := http.Decode(&Foo{})
@@ -43,5 +47,10 @@ func TestDecode(t *testing.T) {
 
 	if *foo.C != "hello" {
 		t.Fatal("hello expected")
+	}
+
+	id, _ := uuid.Parse("39e0233b-9ffd-4718-abe2-17b6d6589ef2")
+	if *foo.D != id {
+		t.Fatal("uuid expected")
 	}
 }

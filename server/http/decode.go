@@ -280,6 +280,12 @@ func fillFieldValue(model interface{}, value string, valIdx int) error {
 			return err
 		}
 		val.Field(valIdx).Set(reflect.ValueOf(&v))
+	case "*uuid.UUID":
+		v, err := uuid.Parse(value)
+		if err != nil {
+			return err
+		}
+		val.Field(valIdx).Set(reflect.ValueOf(&v))
 	}
 
 	return nil
