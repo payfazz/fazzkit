@@ -43,21 +43,22 @@ func EncodeErrorWithInternalCode(ctx context.Context, err error, w http.Response
 	internalCode := getInternalCode(err)
 
 	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(getErrorMap(err, internalCode))
+
+	errMap := getErrorMap(err)
+	errMap["code"] = internalCode
+
+	_ = json.NewEncoder(w).Encode(errMap)
 }
 
-func getErrorMap(err error, internalCode string) map[string]interface{} {
+func getErrorMap(err error) map[string]interface{} {
 	errString := err.Error()
 	var errMap map[string]interface{}
 	e := json.Unmarshal([]byte(errString), &errMap)
-	if nil != e {
-		return map[string]interface{}{
-			"error": err.Error(),
-			"code":  internalCode,
-		}
+	if nil == e {
+		return errMap
 	}
 
-	errMap["code"] = internalCode
-
-	return errMap
+	return map[string]interface{}{
+		"error": errString,
+	}
 }
