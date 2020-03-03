@@ -1,7 +1,7 @@
 package http
 
 import (
-	fazzkiterror "github.com/payfazz/fazzkit/error"
+	fazzkiterror "github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 )
 

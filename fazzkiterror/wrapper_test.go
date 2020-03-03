@@ -1,9 +1,9 @@
-package error_test
+package fazzkiterror_test
 
 import (
 	"errors"
 	"fmt"
-	fazzkiterror "github.com/payfazz/fazzkit/error"
+	fazzkiterror "github.com/payfazz/fazzkit/fazzkiterror"
 	"testing"
 )
 

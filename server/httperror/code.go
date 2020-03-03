@@ -1,7 +1,7 @@
 package httperror
 
 import (
-	servererror "github.com/payfazz/fazzkit/error"
+	servererror "github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func SetDefaultInternalCode(code string) {
 
 func getInternalCode(err error) string {
 	if e, ok := err.(*servererror.ErrorWithInternalCode); ok {
-		return e.Code
+		return e.Code()
 	}
 
 	if e, ok := err.(servererror.Wrapper); ok {

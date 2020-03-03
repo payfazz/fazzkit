@@ -1,4 +1,4 @@
-package error
+package fazzkiterror
 
 type RuntimeError struct {
 	RuntimeError error

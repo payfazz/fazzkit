@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	error3 "github.com/payfazz/fazzkit/error"
+	error3 "github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 	"testing"
 )

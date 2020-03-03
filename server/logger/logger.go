@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 	"encoding/json"
-	error2 "github.com/payfazz/fazzkit/error"
+	error2 "github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 	"time"
 
