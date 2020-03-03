@@ -41,3 +41,11 @@ func getStatusCode(err error) int {
 
 	return defaultStatusCode
 }
+
+func getDomainError(err error) string {
+	if e, ok := err.(servererror.Wrapper); ok {
+		return getDomainError(e.Wrappee())
+	}
+
+	return err.Error()
+}
