@@ -33,5 +33,7 @@ func Test_ErrorMapper(t *testing.T) {
 
 	err := transporterror.NewRuntimeError(error1, errors.New("new_error"))
 	httpError = translator.GetCode(err)
-	t.Log(httpError)
+	if httpError != http.StatusUnprocessableEntity {
+		t.Error(`code_not_match`)
+	}
 }
