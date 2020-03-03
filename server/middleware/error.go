@@ -2,15 +2,15 @@ package middleware
 
 import (
 	"context"
+	"github.com/payfazz/fazzkit/server/grpc"
+	"github.com/payfazz/fazzkit/server/http"
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/payfazz/fazzkit/server/httperror"
-	errorgrpc "github.com/payfazz/fazzkit/server/transport/error/grpc"
-	errorhttp "github.com/payfazz/fazzkit/server/transport/error/http"
 	"google.golang.org/grpc/status"
 )
 
-func TranslateErrorHTTP(errMapper errorhttp.ErrorMapper) endpoint.Middleware {
+func TranslateErrorHTTP(errMapper http.ErrorMapper) endpoint.Middleware {
 	return func(f endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			r, e := f(ctx, request)
@@ -26,7 +26,7 @@ func TranslateErrorHTTP(errMapper errorhttp.ErrorMapper) endpoint.Middleware {
 	}
 }
 
-func TranslateErrorGRPC(errMapper errorgrpc.ErrorMapper) endpoint.Middleware {
+func TranslateErrorGRPC(errMapper grpc.ErrorMapper) endpoint.Middleware {
 	return func(f endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			r, e := f(ctx, request)

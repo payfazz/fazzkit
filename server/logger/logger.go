@@ -3,13 +3,13 @@ package logger
 import (
 	"context"
 	"encoding/json"
+	error2 "github.com/payfazz/fazzkit/error"
 	"net/http"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
 	"github.com/payfazz/fazzkit/server/httperror"
-	fazzerror "github.com/payfazz/fazzkit/server/transport/error"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -107,7 +107,7 @@ func (m Logger) Log(
 
 			if nil != err {
 				kv = append(kv, "err", err.Error())
-				if errWithInternalCode, ok := err.(*fazzerror.ErrorWithInternalCode); ok {
+				if errWithInternalCode, ok := err.(*error2.ErrorWithInternalCode); ok {
 					kv = append(kv, "err_code", errWithInternalCode.Code)
 				}
 			}

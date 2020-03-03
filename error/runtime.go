@@ -1,13 +1,11 @@
 package error
 
-import fazzkiterror "github.com/payfazz/fazzkit/error"
-
 type RuntimeError struct {
 	RuntimeError error
 	DomainError  error
 }
 
-func NewRuntimeError(domain, runtime error) fazzkiterror.Wrapper {
+func NewRuntimeError(domain, runtime error) Wrapper {
 	return &RuntimeError{
 		RuntimeError: runtime,
 		DomainError:  domain,

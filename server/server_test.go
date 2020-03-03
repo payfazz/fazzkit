@@ -18,13 +18,16 @@ func Foo(ctx context.Context, request interface{}) (response interface{}, err er
 
 func TestFoo(t *testing.T) {
 	m := chi.NewRouter()
-	m.Get("/foo", server.NewHTTPServer(Foo, nil).ServeHTTP)
+	m.Get("/foo", server.NewHTTPServer(Foo, server.HTTPOption{
+		DecodeModel: nil,
+		Logger:      nil,
+	}).ServeHTTP)
 
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
 	res, _ := testRequest(t, ts, "GET", "/foo", nil)
-	if res.StatusCode != 200 {
+	if res.StatusCode != 204 {
 		t.Fatal(res)
 	}
 }

@@ -1,13 +1,11 @@
 package error
 
-import fazzkiterror "github.com/payfazz/fazzkit/error"
-
 type ErrorWithInternalCode struct {
 	Code string
 	Err  error
 }
 
-func NewErrorWithInternalCode(code string, err error) fazzkiterror.Wrapper {
+func NewErrorWithInternalCode(code string, err error) Wrapper {
 	return &ErrorWithInternalCode{
 		Code: code,
 		Err:  err,
