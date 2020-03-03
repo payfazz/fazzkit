@@ -1,7 +1,7 @@
 package http
 
 import (
-	transporterror "github.com/payfazz/fazzkit/server/error"
+	fazzkiterror "github.com/payfazz/fazzkit/error"
 	"net/http"
 )
 
@@ -38,7 +38,7 @@ func (e *ErrorMapper) GetCode(err error) int {
 		return e.Error[err].Code
 	}
 
-	if w, ok := err.(transporterror.Wrapper); ok {
+	if w, ok := err.(fazzkiterror.Wrapper); ok {
 		return e.GetCode(w.Wrappee())
 	}
 

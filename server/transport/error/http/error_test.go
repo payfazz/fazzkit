@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	transporterror "github.com/payfazz/fazzkit/server/transport/error"
+	fazzkiterror "github.com/payfazz/fazzkit/server/transport/error"
 	"net/http"
 	"testing"
 )
@@ -31,7 +31,7 @@ func Test_ErrorMapper(t *testing.T) {
 		t.Error(`code_not_match`)
 	}
 
-	err := transporterror.NewRuntimeError(error1, errors.New("new_error"))
+	err := fazzkiterror.NewRuntimeError(error1, errors.New("new_error"))
 	httpError = translator.GetCode(err)
 	if httpError != http.StatusUnprocessableEntity {
 		t.Error(`code_not_match`)

@@ -3,7 +3,6 @@ package error_test
 import (
 	"errors"
 	"fmt"
-	servererror "github.com/payfazz/fazzkit/server/error"
 	"testing"
 )
 
@@ -19,7 +18,7 @@ func (f Foo) Wrappee() error {
 	return f.err
 }
 
-func NewFoo(err error) servererror.Wrapper {
+func NewFoo(err error) Wrapper {
 	return &Foo {
 		err: err,
 	}
@@ -37,7 +36,7 @@ func (f Bar) Wrappee() error {
 	return f.err
 }
 
-func NewBar(err error) servererror.Wrapper {
+func NewBar(err error) Wrapper {
 	return &Bar {
 		err: err,
 	}
@@ -51,7 +50,7 @@ func TestTraversal(t *testing.T) {
 
 func recursive(err error) {
 	fmt.Println(err.Error())
-	if e, ok := err.(servererror.Wrapper); ok {
+	if e, ok := err.(Wrapper); ok {
 		recursive(e.Wrappee())
 	}
 }
