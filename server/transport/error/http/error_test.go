@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	transporterror "github.com/payfazz/fazzkit/server/transport/error"
 	"net/http"
 	"testing"
 )
@@ -29,4 +30,8 @@ func Test_ErrorMapper(t *testing.T) {
 	if httpError != http.StatusInternalServerError {
 		t.Error(`code_not_match`)
 	}
+
+	err := transporterror.NewRuntimeError(error1, errors.New("new_error"))
+	httpError = translator.GetCode(err)
+	t.Log(httpError)
 }

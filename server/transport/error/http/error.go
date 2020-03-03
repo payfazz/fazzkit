@@ -1,6 +1,7 @@
 package http
 
 import (
+	transporterror "github.com/payfazz/fazzkit/server/error"
 	"net/http"
 )
 
@@ -33,9 +34,13 @@ func (e *ErrorMapper) RegisterError(err error, httpCode int) {
 }
 
 func (e *ErrorMapper) GetCode(err error) int {
-	if e.Error[err] == nil {
-		return http.StatusInternalServerError
+	if e.Error[err] != nil {
+		return e.Error[err].Code
 	}
 
-	return e.Error[err].Code
+	if w, ok := err.(transporterror.Wrapper); ok {
+		return e.GetCode(w.Wrappee())
+	}
+
+	return http.StatusInternalServerError
 }
