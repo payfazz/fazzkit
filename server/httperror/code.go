@@ -13,7 +13,7 @@ func SetDefaultInternalCode(code string) {
 
 func getInternalCode(err error) string {
 	if e, ok := err.(*servererror.ErrorWithInternalCode); ok {
-		return e.Code()
+		return e.Code
 	}
 
 	if e, ok := err.(servererror.Wrapper); ok {
