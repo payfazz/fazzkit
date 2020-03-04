@@ -22,7 +22,7 @@ func (factory *InternalCodeFactory) New(err error) Wrapper {
 	e := w.(*ErrorWithInternalCode)
 
 	_, _, line, _ := runtime.Caller(1)
-	e.Code = fmt.Sprintf("%02x%02x%04d", factory.ServiceCode, factory.DomainCode, line)
+	e.Code = fmt.Sprintf("%03d%03d%04d", factory.ServiceCode, factory.DomainCode, line)
 
 	return e
 }
