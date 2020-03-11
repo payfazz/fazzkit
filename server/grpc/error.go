@@ -5,12 +5,16 @@ import (
 )
 
 type TransportError struct {
-	Error error
-	Code  codes.Code
+	Err  error
+	Code codes.Code
+}
+
+func (e *TransportError) Error() string {
+	return e.Err.Error()
 }
 
 func (e *TransportError) Wrappee() error {
-	return e.Error
+	return e.Err
 }
 
 type ErrorMapper struct {
@@ -25,8 +29,8 @@ func NewErrorMapper() *ErrorMapper {
 
 func (e *ErrorMapper) RegisterError(err error, grpcCode codes.Code) {
 	newTransportError := TransportError{
-		Error: err,
-		Code:  grpcCode,
+		Err:  err,
+		Code: grpcCode,
 	}
 
 	e.Error[err] = &newTransportError

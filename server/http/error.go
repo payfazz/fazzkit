@@ -1,17 +1,21 @@
 package http
 
 import (
-	fazzkiterror "github.com/payfazz/fazzkit/fazzkiterror"
+	"github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 )
 
 type TransportError struct {
-	Error error
-	Code  int
+	Err  error
+	Code int
+}
+
+func (e *TransportError) Error() string {
+	return e.Err.Error()
 }
 
 func (e *TransportError) Wrappee() error {
-	return e.Error
+	return e.Err
 }
 
 type ErrorMapper struct {
@@ -26,8 +30,8 @@ func NewErrorMapper() *ErrorMapper {
 
 func (e *ErrorMapper) RegisterError(err error, httpCode int) {
 	newTransportError := TransportError{
-		Error: err,
-		Code:  httpCode,
+		Err:  err,
+		Code: httpCode,
 	}
 
 	e.Error[err] = &newTransportError
