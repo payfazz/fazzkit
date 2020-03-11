@@ -1,7 +1,9 @@
 package grpc
 
 import (
+	"github.com/payfazz/fazzkit/fazzkiterror"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type TransportError struct {
@@ -44,16 +46,26 @@ func (e *ErrorMapper) GetCode(err error) codes.Code {
 	return e.Error[err].Code
 }
 
-//ErrorWithStatusCode error with http status code
-type ErrorWithStatusCode struct {
-	Err        error
-	StatusCode codes.Code
+var defaultGRPCStatusCode = codes.Unknown
+
+func SetDefaultGRPCStatusCode(code codes.Code) {
+	defaultGRPCStatusCode = code
 }
 
-func (e *ErrorWithStatusCode) Error() string {
-	return e.Err.Error()
-}
+func GetGRPCStatusCode(err error) codes.Code {
+	if e, ok := err.(*TransportError); ok {
+		return e.Code
+	}
 
-func (e *ErrorWithStatusCode) Wrappee() error {
-	return e.Err
+	if e, ok := err.(fazzkiterror.Wrapper); ok {
+		return GetGRPCStatusCode(e.Wrappee())
+	}
+
+	if se, ok := err.(interface {
+		GRPCStatus() *status.Status
+	}); ok {
+		return se.GRPCStatus().Code()
+	}
+
+	return defaultGRPCStatusCode
 }

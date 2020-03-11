@@ -51,27 +51,13 @@ func (e *ErrorMapper) GetCode(err error) int {
 	return http.StatusInternalServerError
 }
 
-//ErrorWithStatusCode error with http status code
-type ErrorWithStatusCode struct {
-	Err        error
-	StatusCode int
-}
-
-func (e *ErrorWithStatusCode) Error() string {
-	return e.Err.Error()
-}
-
-func (e *ErrorWithStatusCode) Wrappee() error {
-	return e.Err
-}
-
 //EncodeError ...
 func EncodeError(ctx context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	code := http.StatusInternalServerError
-	if sc, ok := err.(*ErrorWithStatusCode); ok {
-		code = sc.StatusCode
+	if sc, ok := err.(*TransportError); ok {
+		code = sc.Code
 	}
 
 	w.WriteHeader(code)
@@ -84,7 +70,7 @@ func EncodeError(ctx context.Context, err error, w http.ResponseWriter) {
 func EncodeErrorWithInternalCode(ctx context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	code := fazzkiterror.GetHTTPStatusCode(err)
+	code := GetHTTPStatusCode(err)
 	internalCode := fazzkiterror.GetInternalCode(err)
 
 	w.WriteHeader(code)
@@ -110,4 +96,23 @@ func getErrorMap(err error) map[string]interface{} {
 	return map[string]interface{}{
 		"error": errString,
 	}
+}
+
+
+var defaultHTTPStatusCode = http.StatusInternalServerError
+
+func SetDefaultHTTPStatusCode(code int) {
+	defaultHTTPStatusCode = code
+}
+
+func GetHTTPStatusCode(err error) int {
+	if e, ok := err.(*TransportError); ok {
+		return e.Code
+	}
+
+	if e, ok := err.(fazzkiterror.Wrapper); ok {
+		return GetHTTPStatusCode(e.Wrappee())
+	}
+
+	return defaultHTTPStatusCode
 }
