@@ -43,3 +43,17 @@ func (e *ErrorMapper) GetCode(err error) codes.Code {
 
 	return e.Error[err].Code
 }
+
+//ErrorWithStatusCode error with http status code
+type ErrorWithStatusCode struct {
+	Err        error
+	StatusCode codes.Code
+}
+
+func (e *ErrorWithStatusCode) Error() string {
+	return e.Err.Error()
+}
+
+func (e *ErrorWithStatusCode) Wrappee() error {
+	return e.Err
+}
