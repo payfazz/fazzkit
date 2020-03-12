@@ -1,10 +1,6 @@
 package fazzkiterror
 
-var defaultInternalCode = "-1"
-
-func SetDefaultInternalCode(code string) {
-	defaultInternalCode = code
-}
+var DefaultInternalCode = "-1"
 
 func GetInternalCode(err error) string {
 	if e, ok := err.(*ErrorWithInternalCode); ok {
@@ -15,7 +11,7 @@ func GetInternalCode(err error) string {
 		return GetInternalCode(e.Wrappee())
 	}
 
-	return defaultInternalCode
+	return DefaultInternalCode
 }
 
 func GetDomainError(err error) string {

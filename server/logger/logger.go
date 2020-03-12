@@ -3,15 +3,15 @@ package logger
 import (
 	"context"
 	"encoding/json"
-	error2 "github.com/payfazz/fazzkit/fazzkiterror"
+	"github.com/payfazz/fazzkit/fazzkiterror"
 	"net/http"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
-	"github.com/payfazz/fazzkit/server/httperror"
+	fazzkitgrpc "github.com/payfazz/fazzkit/server/grpc"
+	fazzkithttp "github.com/payfazz/fazzkit/server/http"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 //Request ...
@@ -61,17 +61,15 @@ func (m Logger) Instrumentation(
 
 			if err != nil {
 				errStatus := "failed"
-				errModel, ok := err.(*httperror.ErrorWithStatusCode)
-				if ok {
-					if errModel.StatusCode == http.StatusInternalServerError {
+				if fazzkithttp.HasHTTPTransportError(err) {
+					code := fazzkithttp.GetHTTPStatusCode(err)
+					if code == http.StatusInternalServerError {
 						errStatus = "critical"
 					}
 				} else {
-					errModel, ok := status.FromError(err)
-					if ok {
-						if errModel.Code() == codes.Internal {
-							errStatus = "critical"
-						}
+					code := fazzkitgrpc.GetGRPCStatusCode(err)
+					if code == codes.Internal {
+						errStatus = "critical"
 					}
 				}
 
@@ -107,8 +105,9 @@ func (m Logger) Log(
 
 			if nil != err {
 				kv = append(kv, "err", err.Error())
-				if errWithInternalCode, ok := err.(*error2.ErrorWithInternalCode); ok {
-					kv = append(kv, "err_code", errWithInternalCode.Code)
+				internal := fazzkiterror.GetInternalCode(err)
+				if internal != fazzkiterror.DefaultInternalCode {
+					kv = append(kv, "err_code", internal)
 				}
 			}
 			_ = m.logger.Log(kv...)

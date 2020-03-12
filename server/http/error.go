@@ -116,3 +116,15 @@ func GetHTTPStatusCode(err error) int {
 
 	return defaultHTTPStatusCode
 }
+
+func HasHTTPTransportError(err error) bool {
+	if _, ok := err.(*TransportError); ok {
+		return true
+	}
+
+	if e, ok := err.(fazzkiterror.Wrapper); ok {
+		return HasHTTPTransportError(e.Wrappee())
+	}
+
+	return false
+}
