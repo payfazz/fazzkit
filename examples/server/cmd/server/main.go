@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/payfazz/fazzkit/server/httperror"
+	fazzkithttp "github.com/payfazz/fazzkit/server/http"
 
 	"github.com/go-chi/chi"
 	"github.com/oklog/oklog/pkg/group"
@@ -71,7 +71,7 @@ func makeHandler(logger kitlog.Logger) http.Handler {
 
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(httperror.EncodeError),
+		kithttp.ServerErrorEncoder(fazzkithttp.EncodeError),
 	}
 
 	r.Post("/foo/{id}", foohttp.MakeHandler(logger, opts...).ServeHTTP)

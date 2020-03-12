@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/payfazz/fazzkit/server/httperror"
+	fazzkithttp "github.com/payfazz/fazzkit/server/http"
 	"github.com/payfazz/fazzkit/server/validator"
 )
 
@@ -15,9 +15,9 @@ func Validator() endpoint.Middleware {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			err = validator.DefaultValidator()(request)
 			if err != nil {
-				return nil, &httperror.ErrorWithStatusCode{
-					Err:        err,
-					StatusCode: http.StatusUnprocessableEntity,
+				return nil, &fazzkithttp.TransportError{
+					Err:  err,
+					Code: http.StatusUnprocessableEntity,
 				}
 			}
 			return f(ctx, request)

@@ -6,7 +6,6 @@ import (
 	"github.com/payfazz/fazzkit/server/http"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/payfazz/fazzkit/server/httperror"
 	"google.golang.org/grpc/status"
 )
 
@@ -18,9 +17,9 @@ func TranslateErrorHTTP(errMapper http.ErrorMapper) endpoint.Middleware {
 				return r, e
 			}
 			httpCode := errMapper.GetCode(e)
-			return r, &httperror.ErrorWithStatusCode{
-				Err:        e,
-				StatusCode: httpCode,
+			return r, &http.TransportError{
+				Err:  e,
+				Code: httpCode,
 			}
 		}
 	}
