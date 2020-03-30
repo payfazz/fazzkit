@@ -15,6 +15,7 @@ import (
 	foohttp "github.com/payfazz/fazzkit/examples/server/internal/foo/transport/http"
 	helloworldgrpc "github.com/payfazz/fazzkit/examples/server/internal/helloworld/transport/grpc"
 	helloworldhttp "github.com/payfazz/fazzkit/examples/server/internal/helloworld/transport/http"
+	testcsvhttp "github.com/payfazz/fazzkit/examples/server/internal/testcsv/transport/http"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -76,5 +77,6 @@ func makeHandler(logger kitlog.Logger) http.Handler {
 
 	r.Post("/foo/{id}", foohttp.MakeHandler(logger, opts...).ServeHTTP)
 	r.Get("/helloworld/{name}", helloworldhttp.MakeHandler(logger, opts...).ServeHTTP)
+		r.Get("/testcsv", testcsvhttp.MakeHandler(logger, opts...).ServeHTTP)
 	return r
 }
