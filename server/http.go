@@ -3,8 +3,6 @@ package server
 import (
 	"github.com/go-kit/kit/endpoint"
 
-	netHTTP "net/http"
-
 	"github.com/go-kit/kit/transport/http"
 	httpserver "github.com/payfazz/fazzkit/server/http"
 	"github.com/payfazz/fazzkit/server/middleware"
@@ -14,35 +12,37 @@ import (
 type HTTPOption struct {
 	DecodeModel interface{}
 	Logger      *Logger
+	DecodeFunc  httpserver.DecodeFunc
+	EncodeFunc  httpserver.EncodeFunc
 }
 
 //NewHTTPServer create go kit HTTP server
-func NewHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) netHTTP.Handler {
-	middlewares := middleware.Nop()
-
-	if httpOpt.DecodeModel != nil {
-		mval := middleware.Validator()
-		middlewares = endpoint.Chain(mval)
+func NewHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) *http.Server {
+	if httpOpt.DecodeFunc == nil {
+		httpOpt.DecodeFunc = httpserver.Decode
 	}
 
-	if httpOpt.Logger != nil {
-		mlog := middleware.LogAndInstrumentation(
-			httpOpt.Logger.Logger,
-			httpOpt.Logger.Namespace,
-			httpOpt.Logger.Subsystem,
-			httpOpt.Logger.Action,
-			httpOpt.Logger.Domain,
-		)
-		middlewares = endpoint.Chain(mlog, middlewares)
+	if httpOpt.EncodeFunc == nil {
+		httpOpt.EncodeFunc = httpserver.Encode
 	}
 
-	e = middlewares(e)
-
-	return http.NewServer(e, httpserver.Decode(httpOpt.DecodeModel), httpserver.Encode(), options...)
+	return newHTTPServer(e, httpOpt, options...)
 }
 
 //NewHTTPJSONServer create go kit HTTP server
 func NewHTTPJSONServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) *http.Server {
+	if httpOpt.DecodeFunc == nil {
+		httpOpt.DecodeFunc = httpserver.DecodeJSON
+	}
+
+	if httpOpt.EncodeFunc == nil {
+		httpOpt.EncodeFunc = httpserver.Encode
+	}
+
+	return newHTTPServer(e, httpOpt, options...)
+}
+
+func newHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) *http.Server {
 	middlewares := middleware.Nop()
 
 	if httpOpt.DecodeModel != nil {
@@ -60,5 +60,6 @@ func NewHTTPJSONServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.
 		)
 		middlewares = endpoint.Chain(mlog, middlewares)
 	}
-	return http.NewServer(e, httpserver.DecodeJSON(httpOpt.DecodeModel), httpserver.Encode(), options...)
+
+	return http.NewServer(e, httpOpt.DecodeFunc(httpOpt.DecodeModel), httpOpt.EncodeFunc(), options...)
 }

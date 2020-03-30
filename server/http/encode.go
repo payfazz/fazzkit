@@ -10,6 +10,8 @@ type err interface {
 	error() error
 }
 
+type EncodeFunc func() func(ctx context.Context, w http.ResponseWriter, response interface{}) error
+
 //Encode generate a encode function to encode response to json
 func Encode() func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	return func(ctx context.Context, w http.ResponseWriter, response interface{}) error {

@@ -23,6 +23,8 @@ type DecodeParam struct {
 	Options []DecodeOptions
 }
 
+type DecodeFunc func(model interface{}) func(context.Context, *http.Request) (request interface{}, err error)
+
 //Decode generate a decode function to decode request body (json) to model
 func Decode(model interface{}) func(context.Context, *http.Request) (request interface{}, err error) {
 	return func(ctx context.Context, r *http.Request) (interface{}, error) {
