@@ -61,5 +61,7 @@ func newHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.Serv
 		middlewares = endpoint.Chain(mlog, middlewares)
 	}
 
+	e = middlewares(e)
+
 	return http.NewServer(e, httpOpt.DecodeFunc(httpOpt.DecodeModel), httpOpt.EncodeFunc(), options...)
 }

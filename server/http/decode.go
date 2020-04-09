@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
-
 	"github.com/payfazz/fazzkit/server/common"
 	"github.com/payfazz/fazzkit/server/validator"
 )
@@ -71,6 +70,48 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 		err = GetHeaderUsingTag(ctx, _model, r)
 		if err != nil {
 			return nil, &TransportError{err, http.StatusUnprocessableEntity}
+		}
+
+		err = validator.DefaultValidator()(_model)
+		if err != nil {
+			return nil, &TransportError{err, http.StatusUnprocessableEntity}
+		}
+
+		return _model, nil
+	}
+}
+
+//DecodeURLEncoded generate a decode function to decode request body (application/x-www-form-urlencoded) to model
+func DecodeURLEncoded(model interface{}) func(context.Context, *http.Request) (request interface{}, err error) {
+	return func(ctx context.Context, r *http.Request) (interface{}, error) {
+		if model == nil {
+			return nil, nil
+		}
+
+		var _model interface{}
+		var err error
+
+		param, ok := model.(DecodeParam)
+		if ok {
+			_model, _ = common.DeepCopy(param.Model)
+			for _, option := range param.Options {
+				err = option(ctx, _model, r)
+				if err != nil {
+					return nil, &TransportError{err, http.StatusUnprocessableEntity}
+				}
+			}
+		} else {
+			_model, _ = common.DeepCopy(model)
+		}
+
+		if r.ContentLength != 0 {
+			contentType := r.Header["Content-Type"]
+			if common.StringInSlice("application/x-www-form-urlencoded", contentType) {
+				_model, err = ParseURlEncoded(ctx, r, _model)
+				if err != nil {
+					return nil, &TransportError{err, http.StatusUnprocessableEntity}
+				}
+			}
 		}
 
 		err = validator.DefaultValidator()(_model)
