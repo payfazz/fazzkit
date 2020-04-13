@@ -42,19 +42,6 @@ func NewHTTPJSONServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.
 	return newHTTPServer(e, httpOpt, options...)
 }
 
-//NewHTTPFormURLEncode create go kit HTTP server
-func NewHTTPFormURLEncoded(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) *http.Server {
-	if httpOpt.DecodeFunc == nil {
-		httpOpt.DecodeFunc = httpserver.DecodeURLEncoded
-	}
-
-	if httpOpt.EncodeFunc == nil {
-		httpOpt.EncodeFunc = httpserver.Encode
-	}
-
-	return newHTTPServer(e, httpOpt, options...)
-}
-
 func newHTTPServer(e endpoint.Endpoint, httpOpt HTTPOption, options ...http.ServerOption) *http.Server {
 	middlewares := middleware.Nop()
 
