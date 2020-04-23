@@ -43,6 +43,10 @@ func (e *ErrorMapper) GetCode(err error) codes.Code {
 		return codes.Internal
 	}
 
+	if w, ok := err.(fazzkiterror.Wrapper); ok {
+		return e.GetCode(w.Wrappee())
+	}
+
 	return e.Error[err].Code
 }
 
