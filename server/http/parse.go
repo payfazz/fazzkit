@@ -24,7 +24,11 @@ func ParseURlEncoded(ctx context.Context, request *http.Request, model interface
 	}
 	requestMap := make(map[string]interface{})
 	for key, val := range request.Form {
-		requestMap[key] = val
+		if len(val) > 1 {
+			requestMap[key] = val
+			continue
+		}
+		requestMap[key] = val[0]
 	}
 
 	requestByte, err := json.Marshal(requestMap)
