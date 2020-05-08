@@ -39,11 +39,15 @@ func (e *ErrorMapper) RegisterError(err error, grpcCode codes.Code) {
 }
 
 func (e *ErrorMapper) GetCode(err error) codes.Code {
-	if e.Error[err] == nil {
-		return codes.Internal
+	if e.Error[err] != nil {
+		return e.Error[err].Code
 	}
 
-	return e.Error[err].Code
+	if w, ok := err.(fazzkiterror.Wrapper); ok {
+		return e.GetCode(w.Wrappee())
+	}
+
+	return codes.Internal
 }
 
 var defaultGRPCStatusCode = codes.Unknown

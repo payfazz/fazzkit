@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/gorilla/schema"
 )
 
 //ParseJSON parse request body (json) to model
@@ -24,8 +22,21 @@ func ParseURlEncoded(ctx context.Context, request *http.Request, model interface
 	if err != nil {
 		return nil, err
 	}
-	decoder := schema.NewDecoder()
-	err = decoder.Decode(model, request.PostForm)
+	requestMap := make(map[string]interface{})
+	for key, val := range request.Form {
+		if len(val) > 1 {
+			requestMap[key] = val
+			continue
+		}
+		requestMap[key] = val[0]
+	}
+
+	requestByte, err := json.Marshal(requestMap)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(requestByte, model)
 	if err != nil {
 		return nil, err
 	}
