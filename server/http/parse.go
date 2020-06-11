@@ -2,8 +2,11 @@ package http
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
+	"io"
 	"net/http"
+	"reflect"
 )
 
 //ParseJSON parse request body (json) to model
@@ -15,6 +18,60 @@ func ParseJSON(ctx context.Context, request *http.Request, model interface{}) (i
 	}
 
 	return model, nil
+}
+
+//ParseCSV ...
+func ParseCSV(ctx context.Context, request *http.Request, model interface{}) (interface{}, error) {
+	typ := reflect.TypeOf(model).Elem()
+	for i := 0; i < typ.NumField(); i++ {
+		tag := typ.Field(i).Tag.Get("csv")
+		if tag == "" {
+			continue
+		}
+
+		data, err := parseCSV(ctx, request, tag)
+		if nil != err {
+			return model, err
+		}
+
+		reflect.ValueOf(model).Elem().Field(i).Set(reflect.ValueOf(data))
+	}
+	return model, nil
+}
+
+func parseCSV(ctx context.Context, request *http.Request, key string) ([]map[string]interface{}, error) {
+	f, _, err := request.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	result := make([]map[string]interface{}, 0)
+
+	reader := csv.NewReader(f)
+	keys, err := reader.Read()
+	if nil != err {
+		return nil, err
+	}
+
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		for i, r := range record {
+			row := make(map[string]interface{})
+			row[keys[i]] = r
+			result = append(result, row)
+		}
+	}
+
+	return result, nil
 }
 
 func ParseURlEncoded(ctx context.Context, request *http.Request, model interface{}) (interface{}, error) {
