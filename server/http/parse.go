@@ -42,7 +42,7 @@ func ParseCSV(ctx context.Context, request *http.Request, model interface{}) (in
 func parseCSV(ctx context.Context, request *http.Request, key string) ([]map[string]interface{}, error) {
 	f, _, err := request.FormFile(key)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	defer f.Close()
 
