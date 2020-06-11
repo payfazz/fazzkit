@@ -56,11 +56,9 @@ func Decode(model interface{}) func(context.Context, *http.Request) (request int
 				}
 			}
 
-			if common.StringInSlice("multipart/form-data", contentType) {
-				_model, err = ParseCSV(ctx, r, _model)
-				if nil != err {
-					return nil, &TransportError{err, http.StatusUnprocessableEntity}
-				}
+			_model, err = ParseCSV(ctx, r, _model)
+			if nil != err {
+				return nil, &TransportError{err, http.StatusUnprocessableEntity}
 			}
 		}
 
