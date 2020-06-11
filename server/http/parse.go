@@ -64,11 +64,11 @@ func parseCSV(ctx context.Context, request *http.Request, key string) ([]map[str
 			return nil, err
 		}
 
+		row := make(map[string]interface{})
 		for i, r := range record {
-			row := make(map[string]interface{})
 			row[keys[i]] = r
-			result = append(result, row)
 		}
+		result = append(result, row)
 	}
 
 	return result, nil
