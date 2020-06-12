@@ -49,6 +49,8 @@ func parseCSV(ctx context.Context, request *http.Request, key string) ([]map[str
 	result := make([]map[string]interface{}, 0)
 
 	reader := csv.NewReader(f)
+	reader.LazyQuotes = true
+
 	keys, err := reader.Read()
 	if nil != err {
 		return nil, err
